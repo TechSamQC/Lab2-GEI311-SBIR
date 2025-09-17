@@ -46,5 +46,18 @@ public class User {
         this.role = role;
     }
 
+    public void createTicket(Ticket ticket) {
+        // Logic to create a ticket
+        System.out.println("Ticket created by " + name + ": " + ticket);
+    }
+    public void viewTicket(Ticket ticket) {
+        // Logic to view a ticket
+        System.out.println("Viewing ticket: " + ticket);
+    }
+    public void updateTicket(Ticket ticket, String status) {
+        // Logic to update a ticket
+        ticket.setStatus(status);
+        System.out.println("Ticket updated by " + name + ": " + ticket);
+    }   
     
 }
