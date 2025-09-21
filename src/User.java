@@ -56,7 +56,7 @@ public class User {
     }
     public void updateTicket(Ticket ticket, String status) {
         // Logic to update a ticket
-        ticket.setStatus(status);
+        ticket.updateStatus(status);
         System.out.println("Ticket updated by " + name + ": " + ticket);
     }   
     
