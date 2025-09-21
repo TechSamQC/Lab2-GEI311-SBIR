@@ -54,40 +54,49 @@ public class Ticket {
         return updateDate;
     }
 
-    public void setTicketID(int ticketID) {
-        this.ticketID = ticketID;
+    public int getAssignedUserId() {
+        return assignedUserId;
+    }
+
+    public List<String> getComments() {
+        return comments;
     }
 
     public void setTitle(String title) {
         this.title = title;
+        this.updateDate = LocalDate.now().toString();
     }
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
+        this.updateDate = LocalDate.now().toString();
     }
 
     public void setPriority(String priority) {
         this.priority = priority;
+        this.updateDate = LocalDate.now().toString();
     }
 
-    public void setCreateDate(String createDate) {
-        this.createDate = createDate;
+    // Méthode toString pour afficher les détails du ticket
+    @Override
+    public String toString() {
+        return "Informations du ticket "+ ticketID + " (" + title + ") : \n" +
+                "\t Description : " + description + ". \n" +
+                "\t Status : " + status + "\n" +
+                "\t Priorité : " + priority + "\n" +
+                "\t Date de création : " + createDate + "\n" +
+                "\t Date de mise à jour : " + updateDate + "\n" +
+                "\t ID de l'utilisateur assigné : " + assignedUserId + "\n" +
+                "\t Commentaires : " + comments + "\n";
     }
 
-    public void setUpdateDate(String updateDate) {
-        this.updateDate = updateDate;
-    }
-
+    // Méthodes spécifiques au ticket
     public void assignTo(User user) {
         // Assigner un ticket à un utilisateur
         this.status = "ASSIGNÉ";
         this.assignedUserId = user.getUserID();
         this.updateDate = LocalDate.now().toString();
-        System.out.println("Ticket " + ticketID + " assigné à l'utilisateur : " + user.getName());
+        System.out.println("Ticket " + ticketID + " assigné à l'utilisateur " + this.assignedUserId + ".");
     }
 
     public void updateStatus(String status) {
