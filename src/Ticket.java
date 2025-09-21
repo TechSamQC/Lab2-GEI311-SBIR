@@ -1,3 +1,7 @@
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
 public class Ticket {
     private int ticketID;
     private String title;
@@ -7,17 +11,18 @@ public class Ticket {
     private String createDate;
     private String updateDate;
     private int assignedUserId;
+    private List<String> comments;
 
     //Constructeur
-    public Ticket(int ticketID, String title, String description,
-     String priority, String createDate, String updateDate) {
+    public Ticket(int ticketID, String title, String description,String priority) {
         this.ticketID = ticketID;
         this.title = title;
         this.description = description;
         this.status = "OUVERT";
         this.priority = priority;
-        this.createDate = createDate;
-        this.updateDate = updateDate;
+        this.createDate = LocalDate.now().toString();
+        this.updateDate = LocalDate.now().toString();
+        this.comments = new ArrayList<>();
     }
 
     // Getters and Setters
@@ -80,17 +85,22 @@ public class Ticket {
     public void assignTo(User user) {
         // Assigner un ticket à un utilisateur
         this.status = "ASSIGNÉ";
+        this.assignedUserId = user.getUserID();
+        this.updateDate = LocalDate.now().toString();
         System.out.println("Ticket " + ticketID + " assigné à l'utilisateur : " + user.getName());
     }
 
     public void updateStatus(String status) {
         // Mettre à jour le statut du ticket
         this.status = status;
+        this.updateDate = LocalDate.now().toString();
         System.out.println("Le statut du ticket " + ticketID + " a été mis à jour à : " + status);
     }
 
     public void addComment(String comment) {
         // Ajouter un commentaire au ticket
+        comments.add(comment);
+        this.updateDate = LocalDate.now().toString();
         System.out.println("Commentaire ajouté au ticket " + ticketID + " : " + comment);
     }
 }
