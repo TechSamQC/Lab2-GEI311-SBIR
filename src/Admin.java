@@ -41,9 +41,9 @@ public class Admin {
     }
 
     public void closeTicket(Ticket ticket) {
-        // Fermer un ticket
-        ticket.updateStatus("FERMÉ");
-        System.out.println("Admin " + name + " a fermé le ticket " + ticket.getTicketID() + ".");
+        // Terminer un ticket
+        ticket.updateStatus("TERMINÉ");
+        System.out.println("Admin " + name + " a terminé le ticket " + ticket.getTicketID() + ".");
     }
 
     public void viewAllTickets(List<Ticket> tickets) {
