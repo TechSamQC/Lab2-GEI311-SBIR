@@ -105,7 +105,7 @@ public class Ticket {
         System.out.println("Ticket " + ticketID + " assigné à l'utilisateur " + this.assignedUserId + ".");
     }
 
-    public void updateStatus(String status) { // Mettre à jour le statut du ticket
+    public void updateStatus(String status) {
         //SI le ticket est terminé, il n'est pas dans un état permettant la modification
         if (this.status.equals("TERMINÉ")) {
                 System.out.println("Impossible de faire cette manipulation, le ticket est terminé.\n");
@@ -120,8 +120,8 @@ public class Ticket {
         //SI le ticket est remis à ouvert, il est désassigné automatiquement
         else if (status.equals("OUVERT")) {
             if (assignedUserId != 0) {
-                assignedUserId = 0;
                 System.out.println("Le ticket " + ticketID + " est maintenant ouvert et a été automatiquement désassigné de l'utilisateur " + assignedUserId + ".\n");
+                assignedUserId = 0;
                 return;
             }
             else {
@@ -143,7 +143,7 @@ public class Ticket {
                 return;
             }
         }
-        
+        // Mettre à jour le statut du ticket
         this.status = status;
         this.updateDate = LocalDate.now().toString();
         System.out.println("Le statut du ticket " + ticketID + " a été mis à jour à : " + status);
