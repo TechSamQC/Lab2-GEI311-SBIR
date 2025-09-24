@@ -92,6 +92,11 @@ public class Ticket {
 
     // Méthodes spécifiques au ticket
     public void assignTo(User user) {
+        //SI le ticket est terminé, on ne peut pas l'assigner
+        if (this.status.equals("TERMINÉ")) {
+            System.out.println("Impossible d'assigner un utilisateur, le ticket est terminé.\n");
+            return;
+        }
         // Assigner un ticket à un utilisateur
         this.status = "ASSIGNÉ";
         this.assignedUserId = user.getUserID();
@@ -101,12 +106,35 @@ public class Ticket {
 
     public void updateStatus(String status) {
         // Mettre à jour le statut du ticket
+        //SI le statut n'est pas valide, il faut afficher un message d'erreur
+        if (!status.equals("OUVERT") && !status.equals("ASSIGNÉ") &&
+         !status.equals("VALIDATION") && !status.equals("TERMINÉ")) {
+            System.out.println("Statut invalide. Le statut doit être l'un des suivants : OUVERT, ASSIGNÉ, VALIDATION, TERMINÉ. \n");
+            return;
+        }
+        //SI le ticket n'est pas en validation, il ne peut pas être terminé
+        else if (status.equals("TERMINÉ")) {
+            if (!this.status.equals("VALIDATION")) {
+                System.out.println("Un ticket ne peut être terminé que s'il a été validé d'abord.\n");
+                return;
+            }
+            }
+        //SI le ticket n'est pas dans un état permettant la modification
+        else if (this.status.equals("TERMINÉ")) {
+                System.out.println("Impossible de faire cette manipulation, le ticket est terminé.\n");
+                return;
+            }
         this.status = status;
         this.updateDate = LocalDate.now().toString();
         System.out.println("Le statut du ticket " + ticketID + " a été mis à jour à : " + status);
     }
 
     public void addComment(String comment) {
+        //SI le ticket est terminé, on ne peut pas ajouter de commentaire
+        if (this.status.equals("TERMINÉ")) {
+            System.out.println("Impossible d'ajouter un commentaire, le ticket est terminé.\n");
+            return;
+        }
         // Ajouter un commentaire au ticket
         comments.add(comment);
         this.updateDate = LocalDate.now().toString();
