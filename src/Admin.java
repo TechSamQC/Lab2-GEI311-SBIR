@@ -37,13 +37,23 @@ public class Admin {
     public void assignTicket(Ticket ticket, User user) {
         // Assigner un ticket à un utilisateur
         ticket.assignTo(user);
-        System.out.println("Admin " + name + " a assigné le ticket " + ticket.getTicketID() + " à l'utilisateur " + user.getUserID() + ".");
+        if (ticket.getStatus().equals("ASSIGNÉ")) {
+            System.out.println("Le ticket " + ticket.getTicketID() + " a été assigné à l'utilisateur " + user.getUserID() + ".");
+        }
+        else {
+            System.out.println("Le ticket " + ticket.getTicketID() + " n'a pas pu être assigné.");
+        }
     }
 
     public void closeTicket(Ticket ticket) {
         // Terminer un ticket
         ticket.updateStatus("TERMINÉ");
-        System.out.println("Admin " + name + " a terminé le ticket " + ticket.getTicketID() + ".");
+        if (ticket.getStatus().equals("TERMINÉ")) {
+            System.out.println("Admin " + name + " a terminé le ticket " + ticket.getTicketID() + ".");
+        }
+        else {
+            System.out.println("Le ticket " + ticket.getTicketID() + " n'a pas pu être terminé.");
+        }
     }
 
     public void viewAllTickets(List<Ticket> tickets) {
