@@ -61,11 +61,11 @@ public class User {
         String currentStatus = ticket.getStatus();
         
         switch (currentStatus) {
-            case "OUVERT" -> ticket.updateStatus("ASSIGNÉ");
-            case "ASSIGNÉ" -> ticket.updateStatus("VALIDATION");
-            case "VALIDATION" -> ticket.updateStatus("TERMINÉ");
-            case "TERMINÉ" -> ticket.updateStatus("TERMINÉ"); // Affichera le message approprié
-            default -> System.out.println("Statut inconnu pour le ticket " + ticket.getTicketID());
+            case "OUVERT" : ticket.updateStatus("ASSIGNÉ");
+            case "ASSIGNÉ" : ticket.updateStatus("VALIDATION");
+            case "VALIDATION" : ticket.updateStatus("TERMINÉ");
+            case "TERMINÉ" : ticket.updateStatus("TERMINÉ"); // Affichera le message approprié
+            default : System.out.println("Statut inconnu pour le ticket " + ticket.getTicketID());
         }
     }   
 }
