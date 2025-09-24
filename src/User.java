@@ -57,9 +57,15 @@ public class User {
     }
 
     public void updateTicket(Ticket ticket) {
-        // Logic to update a ticket
-        ticket.updateStatus("EN COURS");
-        System.out.println("Ticket mis à jour par " + name + ": " + ticket+ "\n");
+        // Logique de mise à jour de ticket
+        String currentStatus = ticket.getStatus();
+        
+        switch (currentStatus) {
+            case "OUVERT" -> ticket.updateStatus("ASSIGNÉ");
+            case "ASSIGNÉ" -> ticket.updateStatus("VALIDATION");
+            case "VALIDATION" -> ticket.updateStatus("TERMINÉ");
+            case "TERMINÉ" -> ticket.updateStatus("TERMINÉ"); // Affichera le message approprié
+            default -> System.out.println("Statut inconnu pour le ticket " + ticket.getTicketID());
+        }
     }   
-    
 }
