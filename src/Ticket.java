@@ -8,7 +8,7 @@ public class Ticket {
     private String description;
     private String status;
     private String priority;
-    private String createDate;
+    private String creationDate;
     private String updateDate;
     private int assignedUserId;
     private List<String> comments;
@@ -20,7 +20,7 @@ public class Ticket {
         this.description = description;
         this.status = "OUVERT";
         this.priority = priority;
-        this.createDate = LocalDate.now().toString();
+        this.creationDate = LocalDate.now().toString();
         this.updateDate = LocalDate.now().toString();
         this.comments = new ArrayList<>();
     }
@@ -46,8 +46,8 @@ public class Ticket {
         return priority;
     }
 
-    public String getCreateDate() {
-        return createDate;
+    public String getCreationDate() {
+        return creationDate;
     }
 
     public String getUpdateDate() {
@@ -84,7 +84,7 @@ public class Ticket {
                 "\t Description : " + description + ". \n" +
                 "\t Status : " + status + "\n" +
                 "\t Priorité : " + priority + "\n" +
-                "\t Date de création : " + createDate + "\n" +
+                "\t Date de création : " + creationDate + "\n" +
                 "\t Date de mise à jour : " + updateDate + "\n" +
                 "\t ID de l'utilisateur assigné : " + assignedUserId + "\n" +
                 "\t Commentaires : " + comments + "\n";
