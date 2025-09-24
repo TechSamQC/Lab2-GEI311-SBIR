@@ -48,16 +48,18 @@ public class User {
 
     public void createTicket(Ticket ticket) {
         // Logic to create a ticket
-        System.out.println("Ticket created by " + name + ": " + ticket);
+        System.out.println(name + " a créé le ticket: " + ticket+ "\n");
     }
+
     public void viewTicket(Ticket ticket) {
         // Logic to view a ticket
-        System.out.println("Viewing ticket: " + ticket);
+        System.out.println("Visualisation du ticket: " + ticket+ "\n");
     }
-    public void updateTicket(Ticket ticket, String status) {
+
+    public void updateTicket(Ticket ticket) {
         // Logic to update a ticket
-        ticket.updateStatus(status);
-        System.out.println("Ticket updated by " + name + ": " + ticket);
+        ticket.updateStatus("EN COURS");
+        System.out.println("Ticket mis à jour par " + name + ": " + ticket+ "\n");
     }   
     
 }

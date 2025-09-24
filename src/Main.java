@@ -1,4 +1,3 @@
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +10,7 @@ public class Main {
         // Test de la classe Ticket
         tickets.add(new Ticket((tickets.size() + 1), "Problème de connexion", "Impossible de se connecter au système", "HAUTE"));
         tickets.add(new Ticket((tickets.size() + 1), "Erreur 404", "Page non trouvée lors de l'accès au tableau de bord", "MOYENNE"));
+        
         User user1 = new User(UserID, "Alice", "alice@example.com", "USER");
         UserID++;
         tickets.get(0).assignTo(user1);
@@ -26,5 +26,13 @@ public class Main {
         admin1.assignTicket(tickets.get(1), user1);
         admin1.closeTicket(tickets.get(1));
         admin1.viewAllTickets(tickets);
+
+        // Test de la classe User
+        Ticket ticket3 = new Ticket((tickets.size() + 1), "Problème d'impression", "L'imprimante ne répond pas", "BASSE");
+        user1.createTicket(ticket3);  // User1 cree le ticket
+        tickets.add(ticket3);      // Ajoute le ticket à la liste
+        user1.viewTicket(ticket3);
+        System.out.println("Alice(user1) met à jour le ticket : " + ticket3.getTicketID());
+        user1.updateTicket(ticket3);
     }
 }
