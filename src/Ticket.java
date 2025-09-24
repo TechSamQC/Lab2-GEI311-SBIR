@@ -95,7 +95,7 @@ public class Ticket {
     public void assignTo(User user) {
         //SI le ticket est terminé, on ne peut pas l'assigner
         if (this.status.equals("TERMINÉ")) {
-            System.out.println("Impossible d'assigner un utilisateur, le ticket est terminé.\n");
+            System.out.println("Impossible d'assigner un utilisateur, le ticket est terminé.");
             return;
         }
         // Assigner un ticket à un utilisateur
@@ -108,7 +108,7 @@ public class Ticket {
     public void updateStatus(String status) { // Mettre à jour le statut du ticket
         //SI le ticket est terminé, il n'est pas dans un état permettant la modification du statut
         if (this.status.equals("TERMINÉ")) {
-                System.out.println("Impossible de faire cette manipulation, le ticket est terminé.\n");
+                System.out.println("Impossible de faire cette manipulation, le ticket est terminé.");
                 return;
         }
         // Vérifier si le statut est valide
@@ -117,10 +117,10 @@ public class Ticket {
                 if (assignedUserId != 0) {
                 this.status = status;
                 this.updateDate = LocalDate.now().toString();
-                System.out.println("Le ticket " + ticketID + " est maintenant ouvert et a été automatiquement désassigné de l'utilisateur " + assignedUserId + ".\n");
+                System.out.println("Le ticket " + ticketID + " est maintenant ouvert et a été automatiquement désassigné de l'utilisateur " + assignedUserId + ".");
                 assignedUserId = 0;
                 } else {
-                System.out.println("Le ticket " + ticketID + " est déjà ouvert.\n");
+                System.out.println("Le ticket " + ticketID + " est déjà ouvert.");
                 }
                 break;
             case "VALIDATION": //SI le ticket n'est pas assigné, il ne peut pas être mis en validation
@@ -129,7 +129,7 @@ public class Ticket {
                     this.updateDate = LocalDate.now().toString();
                     System.out.println("Le statut du ticket " + ticketID + " a été mis à jour à : " + status);
                 } else {
-                    System.out.println("Un ticket ne peut être mis en validation que s'il est assigné d'abord.\n");
+                    System.out.println("Un ticket ne peut être mis en validation que s'il est assigné d'abord.");
                 }
                 break;
             case "TERMINÉ": //SI le ticket n'est pas en validation, il ne peut pas être terminé
@@ -138,12 +138,12 @@ public class Ticket {
                     this.updateDate = LocalDate.now().toString();
                     System.out.println("Le statut du ticket " + ticketID + " a été mis à jour à : " + status);
                 } else {
-                    System.out.println("Un ticket ne peut être terminé que s'il a été validé d'abord.\n");
+                    System.out.println("Un ticket ne peut être terminé que s'il a été validé d'abord.");
                 }
                 break;
                 
             default: //SI le statut saisi n'est pas valide, il faut afficher un message d'erreur
-                System.out.println("Statut invalide. Le statut doit être l'un des suivants : OUVERT, ASSIGNÉ, VALIDATION, TERMINÉ. \n");
+                System.out.println("Statut invalide. Le statut doit être l'un des suivants : OUVERT, ASSIGNÉ, VALIDATION, TERMINÉ.");
                 break;
         }
     }
@@ -151,12 +151,12 @@ public class Ticket {
     public void addComment(String comment) {
         //SI le ticket est terminé, on ne peut pas ajouter de commentaire
         if (this.status.equals("TERMINÉ")) {
-            System.out.println("Impossible d'ajouter un commentaire, le ticket est terminé.\n");
+            System.out.println("Impossible d'ajouter un commentaire, le ticket est terminé.");
             return;
         }
         //SI le ticket n'est pas assigné, on ne peut pas ajouter de commentaire
         else if (assignedUserId == 0) {
-            System.out.println("Impossible d'ajouter un commentaire, le ticket n'est pas assigné.\n");
+            System.out.println("Impossible d'ajouter un commentaire, le ticket n'est pas assigné.");
             return;
         }
         // Ajouter un commentaire au ticket
