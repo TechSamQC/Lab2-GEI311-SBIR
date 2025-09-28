@@ -40,10 +40,6 @@ public class Admin {
             System.out.println("Erreur: Impossible d'assigner un ticket null.");
             return;
         }
-        if (user == null) {
-            System.out.println("Erreur: Impossible d'assigner un ticket à un utilisateur null.");
-            return;
-        }
         // Assigner un ticket à un utilisateur
         ticket.assignTo(user);
         if (ticket.getStatus().equals("ASSIGNÉ")) {

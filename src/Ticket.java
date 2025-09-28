@@ -15,11 +15,41 @@ public class Ticket {
 
     //Constructeur
     public Ticket(int ticketID, String title, String description,String priority) {
+        // Validation de l'ID du ticket
+        if (ticketID < 0) {
+            System.out.println("Erreur: L'ID du ticket doit être un entier positif.");
+            return;
+        }
         this.ticketID = ticketID;
+
+        // Validation du titre non vide
+        if (title == null || title.trim().isEmpty()) {
+            System.out.println("Erreur: Le titre du ticket ne peut pas être vide.");
+            return;
+        }
         this.title = title;
+
+        // Validation de la description non vide
+        if (description == null || description.trim().isEmpty()) {
+            System.out.println("Erreur: La description du ticket ne peut pas être vide.");
+            return;
+        }
         this.description = description;
+
         this.status = "OUVERT";
-        this.priority = priority;
+        // Vérifier si la priorité est valide
+        switch (priority) {
+            case "BASSE":
+            case "MOYENNE":
+            case "HAUTE":
+            case "URGENTE":
+                this.priority = priority;
+                break;
+        
+            default:
+                System.out.println("Priorité invalide. La priorité doit être l'une des suivantes : BASSE, MOYENNE, HAUTE, URGENTE.");
+                break;
+        }
         this.creationDate = LocalDate.now().toString();
         this.updateDate = LocalDate.now().toString();
         this.assignedUserId = 0; // 0 signifie non assigné
@@ -64,18 +94,40 @@ public class Ticket {
     }
 
     public void setTitle(String title) {
+        // Validation du titre non vide
+        if (title == null || title.trim().isEmpty()) {
+            System.out.println("Erreur: Le titre du ticket ne peut pas être vide.");
+            return;
+        }
         this.title = title;
         this.updateDate = LocalDate.now().toString();
     }
 
     public void setDescription(String description) {
+        // Validation de la description non vide
+        if (description == null || description.trim().isEmpty()) {
+            System.out.println("Erreur: La description du ticket ne peut pas être vide.");
+            return;
+        }
         this.description = description;
         this.updateDate = LocalDate.now().toString();
     }
 
     public void setPriority(String priority) {
-        this.priority = priority;
-        this.updateDate = LocalDate.now().toString();
+        // Vérifier si la priorité est valide
+        switch (priority) {
+            case "BASSE":
+            case "MOYENNE":
+            case "HAUTE":
+            case "URGENTE":
+                this.priority = priority;
+                this.updateDate = LocalDate.now().toString();
+                break;
+        
+            default:
+                System.out.println("Priorité invalide. La priorité doit être l'une des suivantes : BASSE, MOYENNE, HAUTE, URGENTE.");
+                break;
+        }
     }
 
     // Méthode toString pour afficher les détails du ticket
@@ -96,6 +148,11 @@ public class Ticket {
         //SI le ticket est terminé, on ne peut pas l'assigner
         if (this.status.equals("TERMINÉ")) {
             System.out.println("Impossible d'assigner un utilisateur, le ticket est terminé.");
+            return;
+        }
+        // Validation de nullité
+        if (user == null) {
+            System.out.println("Erreur: Impossible d'assigner un ticket à un utilisateur null.");
             return;
         }
         // Assigner un ticket à un utilisateur
