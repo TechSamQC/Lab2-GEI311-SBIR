@@ -35,6 +35,15 @@ public class Admin {
 
     // Méthodes spécifiques à l'admin
     public void assignTicket(Ticket ticket, User user) {
+        // Validation de nullité
+        if (ticket == null) {
+            System.out.println("Erreur: Impossible d'assigner un ticket null.");
+            return;
+        }
+        if (user == null) {
+            System.out.println("Erreur: Impossible d'assigner un ticket à un utilisateur null.");
+            return;
+        }
         // Assigner un ticket à un utilisateur
         ticket.assignTo(user);
         if (ticket.getStatus().equals("ASSIGNÉ")) {
@@ -46,6 +55,11 @@ public class Admin {
     }
 
     public void closeTicket(Ticket ticket) {
+        // Validation de nullité
+        if (ticket == null) {
+            System.out.println("Erreur: Impossible de terminer un ticket null.");
+            return;
+        }
         // Terminer un ticket
         ticket.updateStatus("TERMINÉ");
         if (ticket.getStatus().equals("TERMINÉ")) {
@@ -57,6 +71,11 @@ public class Admin {
     }
 
     public void viewAllTickets(List<Ticket> tickets) {
+        // Validation de nullité ou liste vide
+        if (tickets == null || tickets.isEmpty()) {
+            System.out.println("Aucun ticket disponible.");
+            return;
+        }
         // Afficher tous les tickets
         for (Ticket ticket : tickets) {
             System.out.println(ticket);
