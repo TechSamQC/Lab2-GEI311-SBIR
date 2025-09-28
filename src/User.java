@@ -53,17 +53,6 @@ public class User {
             return;
         }
         
-        // Validation des champs obligatoires du ticket
-        if (ticket.getTitle() == null || ticket.getTitle().trim().isEmpty()) {
-            System.out.println("Erreur: Le titre du ticket ne peut pas être vide.");
-            return;
-        }
-        
-        if (ticket.getDescription() == null || ticket.getDescription().trim().isEmpty()) {
-            System.out.println("Erreur: La description du ticket ne peut pas être vide.");
-            return;
-        }
-        
         // Logique de création de ticket
         System.out.println(name + " a créé le ticket: " + ticket + "\n");
     }
