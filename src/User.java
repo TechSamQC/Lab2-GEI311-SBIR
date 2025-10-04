@@ -107,5 +107,18 @@ public class User {
                 System.out.println("Statut inconnu pour le ticket " + ticket.getTicketID());
                 break;
         }
+    }
+
+    // Vérification des permissions
+    public boolean isAdmin() {
+        return this.role != null && this.role.equalsIgnoreCase("ADMIN");
+    }
+
+    public boolean canAssignTickets() {
+        return isAdmin();
+    }
+
+    public boolean canCloseTickets() {
+        return isAdmin();
     }   
 }

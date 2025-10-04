@@ -42,12 +42,14 @@ public class Ticket {
             case "BASSE":
             case "MOYENNE":
             case "HAUTE":
-            case "URGENTE":
+            case "CRITIQUE":
+            case "URGENTE": // Support legacy
                 this.priority = priority;
                 break;
         
             default:
-                System.out.println("Priorité invalide. La priorité doit être l'une des suivantes : BASSE, MOYENNE, HAUTE, URGENTE.");
+                System.out.println("Priorité invalide. La priorité doit être l'une des suivantes : BASSE, MOYENNE, HAUTE, CRITIQUE.");
+                this.priority = "MOYENNE"; // Priorité par défaut
                 break;
         }
         this.creationDate = LocalDate.now().toString();
@@ -119,13 +121,14 @@ public class Ticket {
             case "BASSE":
             case "MOYENNE":
             case "HAUTE":
-            case "URGENTE":
+            case "CRITIQUE":
+            case "URGENTE": // Support legacy
                 this.priority = priority;
                 this.updateDate = LocalDate.now().toString();
                 break;
         
             default:
-                System.out.println("Priorité invalide. La priorité doit être l'une des suivantes : BASSE, MOYENNE, HAUTE, URGENTE.");
+                System.out.println("Priorité invalide. La priorité doit être l'une des suivantes : BASSE, MOYENNE, HAUTE, CRITIQUE.");
                 break;
         }
     }
@@ -190,12 +193,12 @@ public class Ticket {
                 }
                 break;
             case "TERMINÉ": //SI le ticket n'est pas en validation, il ne peut pas être terminé
-                if (this.status.equals("VALIDATION")) {
+                if (this.status.equals("VALIDATION") || this.status.equals("OUVERT") || this.status.equals("ASSIGNÉ")) {
                     this.status = status;
                     this.updateDate = LocalDate.now().toString();
                     System.out.println("Le statut du ticket " + ticketID + " a été mis à jour à : " + status);
                 } else {
-                    System.out.println("Un ticket ne peut être terminé que s'il a été validé d'abord.");
+                    System.out.println("Un ticket ne peut être terminé que depuis VALIDATION (normal) ou depuis OUVERT/ASSIGNÉ (fermeture directe).");
                 }
                 break;
                 

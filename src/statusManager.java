@@ -1,0 +1,144 @@
+import java.util.*;
+
+public class statusManager {
+    private List<String> validStatuses;
+    private Map<String, List<String>> statusTransitions;
+
+    // Constructeur
+    public statusManager() {
+        this.validStatuses = Arrays.asList("OUVERT", "ASSIGNÉ", "VALIDATION", "TERMINÉ");
+        this.statusTransitions = new HashMap<>();
+        initializeTransitions();
+    }
+
+    // Initialise les règles de transition entre statuts
+    public void initializeTransitions() {
+        // Depuis OUVERT, on peut aller vers ASSIGNÉ, VALIDATION (inutile) ou TERMINÉ (fermeture directe)
+        statusTransitions.put("OUVERT", Arrays.asList("ASSIGNÉ", "VALIDATION", "TERMINÉ"));
+        
+        // Depuis ASSIGNÉ, on peut aller vers OUVERT ou VALIDATION (DOIT passer par VALIDATION avant TERMINÉ)
+        statusTransitions.put("ASSIGNÉ", Arrays.asList("OUVERT", "VALIDATION"));
+        
+        // Depuis VALIDATION, on peut aller vers OUVERT, ASSIGNÉ ou TERMINÉ
+        statusTransitions.put("VALIDATION", Arrays.asList("OUVERT", "ASSIGNÉ", "TERMINÉ"));
+        
+        // Depuis TERMINÉ, aucune transition possible (état final)
+        statusTransitions.put("TERMINÉ", new ArrayList<>());
+    }
+
+    // Met à jour le statut d'un ticket
+    public boolean updateStatus(Ticket ticket, String newStatus, User user) {
+        if (ticket == null || user == null) {
+            System.out.println("Erreur: Le ticket ou l'utilisateur est null.");
+            return false;
+        }
+
+        // Validation du nouveau statut
+        if (!validateStatus(newStatus)) {
+            System.out.println("Erreur: Statut invalide: " + newStatus);
+            return false;
+        }
+
+        String currentStatus = ticket.getStatus();
+
+        // Vérification de la transition
+        if (!validateTransition(currentStatus, newStatus)) {
+            System.out.println("Erreur: Transition de statut invalide de " + currentStatus + " vers " + newStatus);
+            return false;
+        }
+
+        // Vérification des permissions
+        if (!canUserChangeStatus(user, ticket, newStatus)) {
+            System.out.println("Erreur: Vous n'avez pas la permission de changer ce statut.");
+            return false;
+        }
+
+        // Mise à jour du statut
+        ticket.updateStatus(newStatus);
+        return true;
+    }
+
+    // Valide si un statut est dans la liste des statuts valides
+    public boolean validateStatus(String status) {
+        if (status == null || status.trim().isEmpty()) {
+            return false;
+        }
+        return validStatuses.contains(status.toUpperCase());
+    }
+
+    // Valide si une transition est autorisée
+    public boolean validateTransition(String currentStatus, String newStatus) {
+        if (currentStatus == null || newStatus == null) {
+            return false;
+        }
+
+        // Si le statut est déjà celui demandé, pas de transition nécessaire
+        if (currentStatus.equalsIgnoreCase(newStatus)) {
+            return false;
+        }
+
+        List<String> allowedTransitions = statusTransitions.get(currentStatus.toUpperCase());
+        if (allowedTransitions == null) {
+            return false;
+        }
+
+        return allowedTransitions.contains(newStatus.toUpperCase());
+    }
+
+    // Vérifie si l'utilisateur peut changer le statut
+    public boolean canUserChangeStatus(User user, Ticket ticket, String newStatus) {
+        if (user == null || ticket == null) {
+            return false;
+        }
+
+        // Les admins peuvent toujours changer les statuts
+        if (user.isAdmin()) {
+            return true;
+        }
+
+        // Les utilisateurs réguliers peuvent seulement mettre un ticket assigné en VALIDATION
+        if (ticket.getAssignedUserId() == user.getUserID() && 
+            ticket.getStatus().equalsIgnoreCase("ASSIGNÉ") && 
+            newStatus.equalsIgnoreCase("VALIDATION")) {
+            return true;
+        }
+
+        // Sinon, refuser
+        return false;
+    }
+
+    // Obtient les transitions valides depuis un statut donné
+    public List<String> getValidTransitions(String currentStatus) {
+        if (currentStatus == null) {
+            return new ArrayList<>();
+        }
+        
+        List<String> transitions = statusTransitions.get(currentStatus.toUpperCase());
+        return transitions != null ? new ArrayList<>(transitions) : new ArrayList<>();
+    }
+
+    // Obtient tous les statuts valides
+    public List<String> getValidStatuses() {
+        return new ArrayList<>(validStatuses);
+    }
+
+    // Obtient une description d'un statut
+    public String getStatusDescription(String status) {
+        if (status == null) {
+            return "Statut inconnu";
+        }
+
+        switch (status.toUpperCase()) {
+            case "OUVERT":
+                return "Le ticket est ouvert et en attente d'assignation";
+            case "ASSIGNÉ":
+                return "Le ticket est assigné à un développeur";
+            case "VALIDATION":
+                return "Le ticket est en cours de validation par l'équipe";
+            case "TERMINÉ":
+                return "Le ticket est terminé après validation de l'équipe";
+            default:
+                return "Statut inconnu";
+        }
+    }
+}
