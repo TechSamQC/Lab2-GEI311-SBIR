@@ -64,11 +64,6 @@ public class Ticket {
     }
 
     public void setTitle(String title) {
-        // Validation du titre non vide
-        if (title == null || title.trim().isEmpty()) {
-            System.out.println("Erreur: Le titre du ticket ne peut pas être vide.");
-            return;
-        }
         this.title = title;
         this.updateDate = LocalDate.now().toString();
     }
