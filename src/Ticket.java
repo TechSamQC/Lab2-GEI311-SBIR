@@ -14,16 +14,12 @@ public class Ticket {
     private List<String> comments;
 
     //Constructeur
-    public Ticket(int ticketID, String title, Description description,String priority) {
+    public Ticket(int ticketID, String title, Description description, String priority) {
         this.ticketID = ticketID;
         this.title = title;
-        // Validation de la description non vide
-        if (description == null) {
-            System.out.println("Erreur: La description du ticket ne peut pas être vide.");
-            return;
-        }
         this.description = description;
         this.status = "OUVERT";
+        this.priority = priority;
         this.creationDate = LocalDate.now().toString();
         this.updateDate = LocalDate.now().toString();
         this.assignedUserId = 0; // 0 signifie non assigné

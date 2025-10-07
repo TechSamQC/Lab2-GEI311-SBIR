@@ -13,7 +13,7 @@ public class commentManager {
         }
 
         // Ajouter le commentaire
-        ticket.addComment("[" + author.getName() + "] :" + comment);
+        ticket.addComment("[" + author.getName() + "] : " + comment);
         System.out.println("Commentaire ajouté au ticket " + ticket.getTicketID() + " par " + author.getName());
         return true;
     }
