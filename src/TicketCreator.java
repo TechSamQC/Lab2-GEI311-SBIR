@@ -2,6 +2,7 @@ public class TicketCreator {
     private int nextTicketID;
     private ticketValidator ticketValidator;
     private descriptionManager descriptionManager;
+    private TicketManager ticketManager;
 
     // Constructeur
     public TicketCreator() {
@@ -17,11 +18,12 @@ public class TicketCreator {
         this.descriptionManager = new descriptionManager();
     }
 
-    // Création d'un ticket avec un manager de description personnalisé
-    public TicketCreator(int startingID, descriptionManager customManager) {
+    // Création d'un ticket avec un manager de ticket (pour ajouter le ticket directement au gestionnaire)
+    public TicketCreator(int startingID, TicketManager ticketManager) {
         this.nextTicketID = startingID;
         this.ticketValidator = new ticketValidator();
-        this.descriptionManager = customManager;
+        this.ticketManager = ticketManager;
+        this.descriptionManager = ticketManager.getDescriptionManager();
     }
 
     // Création simple d'un ticket (titre et créateur)
@@ -45,11 +47,19 @@ public class TicketCreator {
             return null;
         }
 
-        // Création de la description
+        // Création de la description en passant par le manager de description
         Description desc = descriptionManager.createDescription(description);
 
         // Création du ticket
         Ticket ticket = new Ticket(ticketID, title, desc, priority);
+
+        // Ajout du ticket au gestionnaire de tickets si disponible
+        if (ticketManager != null) {
+            ticketManager.addTicket(ticket);
+        }
+        else {
+            System.out.println("Avertissement: Le ticket ne sera pas ajouté à un gestionnaire de tickets car aucun n'est fourni.");
+        }
 
         // Initialisation du ticket
         initializeTicket(ticket);
@@ -90,8 +100,8 @@ public class TicketCreator {
         return ticketValidator;
     }
 
-    public descriptionManager getDescriptionManager() {
-        return descriptionManager;
+    public TicketManager getTicketManager() {
+        return ticketManager;
     }
 
     // Setter pour réinitialiser l'ID

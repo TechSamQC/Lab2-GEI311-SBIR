@@ -10,7 +10,7 @@ public class Main {
         Display display = new Display();
         TicketManager ticketManager = new TicketManager(display);
         descriptionManager descManager = ticketManager.getDescriptionManager();
-        TicketCreator ticketCreator = new TicketCreator(0, descManager);
+        TicketCreator ticketCreator = new TicketCreator(0, ticketManager); // ticketCreator sera relié avec ticketManager
         UserCreator userCreator = new UserCreator();
 
         // ========================================================================
@@ -66,11 +66,11 @@ public class Main {
             "BASSE"
         );
 
-        // Ajout des tickets au système
-        ticketManager.addTicket(ticket1);
+        // Ajout des tickets au système (se fait maintenant automatiquement dans TicketCreator)
+        /*ticketManager.addTicket(ticket1);
         ticketManager.addTicket(ticket2);
         ticketManager.addTicket(ticket3);
-        ticketManager.addTicket(ticket4);
+        ticketManager.addTicket(ticket4);*/
 
         System.out.println("\n--- Affichage de tous les tickets ouverts ---");
         ticketManager.displayTicketsByStatus("OUVERT");
@@ -145,7 +145,7 @@ public class Main {
         System.out.println("--- Cas 1: Fermeture directe depuis OUVERT ---");
         System.out.println("(Probleme non prioritaire ou specifique a l'utilisateur)");
         System.out.println("Ticket #" + ticket4.getTicketID() + " statut: " + ticket4.getStatus());
-        ticket4.updateStatus("TERMINÉ");
+        ticketManager.closeTicket(ticket4.getTicketID(), admin);
         System.out.println("Statut apres fermeture directe: " + ticket4.getStatus());
 
         System.out.println("\n--- Cas 2: ASSIGNE doit passer par VALIDATION avant TERMINE ---");
@@ -160,7 +160,7 @@ public class Main {
         System.out.println("\n--- Cas 3: Retour en arriere depuis VALIDATION vers ASSIGNE ---");
         System.out.println("(Correction supplementaire necessaire)");
         Ticket ticket10 = ticketCreator.createTicket("Test retour arriere", "Description test", admin, "HAUTE");
-        ticketManager.addTicket(ticket10);
+        //ticketManager.addTicket(ticket10);
         ticketManager.assignTicket(ticket10.getTicketID(), dev1, admin);
         ticketManager.updateTicketStatus(ticket10.getTicketID(), "VALIDATION", dev1);
         System.out.println("Ticket #" + ticket10.getTicketID() + " en VALIDATION");
@@ -182,7 +182,7 @@ public class Main {
                 admin,
                 "MOYENNE"
             );
-            ticketManager.addTicket(t);
+            //ticketManager.addTicket(t);
             if (i % 2 == 0) {
                 ticketManager.assignTicket(t.getTicketID(), dev1, admin);
             } else {
@@ -250,7 +250,7 @@ public class Main {
             admin,
             "BASSE"
         );
-        ticketManager.addTicket(ticket9);
+        //ticketManager.addTicket(ticket9);
 
         System.out.println("--- Tentative d'assignation par un utilisateur simple ---");
         ticketManager.assignTicket(ticket9.getTicketID(), dev1, user1); // Devrait echouer
