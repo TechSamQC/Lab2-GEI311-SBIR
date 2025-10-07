@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 public class ticketValidator {
@@ -42,14 +41,6 @@ public class ticketValidator {
         }
         int length = title.trim().length();
         return length >= minTitleLength && length <= maxTitleLength;
-    }
-
-    // Validation du statut
-    private boolean validateStatus(String status) {
-        if (status == null || status.trim().isEmpty()) {
-            return false;
-        }
-        return validStatuses.contains(status.toUpperCase());
     }
 
     // Validation de la priorité
