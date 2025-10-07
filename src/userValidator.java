@@ -29,19 +29,15 @@ public class userValidator {
     }
 
     // Validation complète de l'utilisateur
-    public boolean validateUser(User user) {
-        if (user == null) {
-            return false;
-        }
-        
-        return validateName(user.getName()) &&
-               validateEmail(user.getEmail()) &&
-               validateRole(user.getRole()) &&
-               validateUserID(user.getUserID());
+    public boolean validateUser(String name, String email, String role, int userID) {
+        return validateName(name) &&
+               validateEmail(email) &&
+               validateRole(role) &&
+               validateUserID(userID);
     }
 
     // Validation du nom
-    public boolean validateName(String name) {
+    private boolean validateName(String name) {
         if (name == null || name.trim().isEmpty()) {
             return false;
         }
@@ -50,7 +46,7 @@ public class userValidator {
     }
 
     // Validation de l'email
-    public boolean validateEmail(String email) {
+    private boolean validateEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             return false;
         }
@@ -58,7 +54,7 @@ public class userValidator {
     }
 
     // Validation du rôle
-    public boolean validateRole(String role) {
+    private boolean validateRole(String role) {
         if (role == null || role.trim().isEmpty()) {
             return false;
         }
@@ -66,12 +62,12 @@ public class userValidator {
     }
 
     // Validation de l'ID utilisateur
-    public boolean validateUserID(int userID) {
+    private boolean validateUserID(int userID) {
         return userID > 0;
     }
 
     // Vérification du format de l'email avec regex
-    public boolean isValidEmailFormat(String email) {
+    private boolean isValidEmailFormat(String email) {
         if (email == null) {
             return false;
         }
@@ -79,32 +75,27 @@ public class userValidator {
     }
 
     // Liste les erreurs de validation
-    public List<String> getValidationErrors(User user) {
+    public List<String> getValidationErrors(String name, String email, String role, int userID) {
         List<String> errors = new ArrayList<>();
         
-        if (user == null) {
-            errors.add("L'utilisateur est null");
-            return errors;
-        }
-
         // Validation du nom
-        if (!validateName(user.getName())) {
+        if (!validateName(name)) {
             errors.add("Nom invalide (doit contenir entre " + minNameLength + " et " + maxNameLength + " caractères)");
         }
 
         // Validation de l'email
-        if (!validateEmail(user.getEmail())) {
-            errors.add("Email invalide: " + user.getEmail());
+        if (!validateEmail(email)) {
+            errors.add("Email invalide: " + email);
         }
 
         // Validation du rôle
-        if (!validateRole(user.getRole())) {
-            errors.add("Rôle invalide: " + user.getRole());
+        if (!validateRole(role)) {
+            errors.add("Rôle invalide: " + role);
         }
 
         // Validation de l'ID
-        if (!validateUserID(user.getUserID())) {
-            errors.add("ID utilisateur invalide: " + user.getUserID());
+        if (!validateUserID(userID)) {
+            errors.add("ID utilisateur invalide: " + userID);
         }
 
         return errors;

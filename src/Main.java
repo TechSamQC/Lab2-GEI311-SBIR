@@ -8,11 +8,11 @@ public class Main {
         System.out.println("╚════════════════════════════════════════════════════════════════╝\n");
 
         // Initialisation du système
-        TicketManager ticketManager = new TicketManager();
-        UserCreator userCreator = new UserCreator();
-        TicketCreator ticketCreator = new TicketCreator();
-        descriptionManager descManager = new descriptionManager();
         Display display = new Display();
+        TicketManager ticketManager = new TicketManager(display);
+        descriptionManager descManager = ticketManager.getDescriptionManager();
+        TicketCreator ticketCreator = new TicketCreator(0, descManager);
+        UserCreator userCreator = new UserCreator();
 
         // ========================================================================
         // PARTIE 1: CREATION DES UTILISATEURS
@@ -190,9 +190,6 @@ public class Main {
                 ticketManager.assignTicket(t.getTicketID(), dev2, admin);
             }
         }
-
-        System.out.println("--- Statistiques d'assignation ---");
-        ticketManager.displayAssignationStatistics();
 
         System.out.println("\n--- Tickets assignes a Alice ---");
         ticketManager.displayTicketsByUser(dev1);

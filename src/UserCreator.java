@@ -16,19 +16,20 @@ public class UserCreator {
 
     // Création d'un utilisateur avec rôle par défaut
     public User createUser(String name, String email) {
-        return createUser(name, email, assignDefaultRole());
+        return createUser(name, email, "USER"); //Le rôle par défaut est "USER"
     }
 
     // Création d'un utilisateur avec rôle spécifique
     public User createUser(String name, String email, String role) {
+        // Génération de l'ID
+        int userID = generateUserID();
         // Validation avant création
-        if (!validateBeforeCreation(name, email, role)) {
+        if (!validateBeforeCreation(userID, name, email, role)) {
             System.out.println("Erreur: Impossible de créer l'utilisateur avec les données fournies.");
             return null;
         }
 
-        // Génération de l'ID et création
-        int userID = generateUserID();
+        // Création de l'utilisateur
         User user = new User(userID, name, email, role);
 
         System.out.println("Utilisateur créé avec succès: " + name + " (ID: " + userID + ", Rôle: " + role + ")");
@@ -40,25 +41,11 @@ public class UserCreator {
         return nextUserID++;
     }
 
-    // Retourne le rôle par défaut
-    public String assignDefaultRole() {
-        return "USER";
-    }
-
     // Validation avant création
-    public boolean validateBeforeCreation(String name, String email, String role) {
-        if (!userValidator.validateName(name)) {
-            System.out.println("Erreur: Nom invalide.");
-            return false;
-        }
-
-        if (!userValidator.validateEmail(email)) {
-            System.out.println("Erreur: Email invalide.");
-            return false;
-        }
-
-        if (!userValidator.validateRole(role)) {
-            System.out.println("Erreur: Rôle invalide. Rôles acceptés: " + userValidator.getValidRoles());
+    public boolean validateBeforeCreation(int userID, String name, String email, String role) {
+        if (!userValidator.validateUser(name, email, role, userID)) {
+            System.out.println("Erreur(s) de création de l'utilisateur: ");
+            userValidator.getValidationErrors(name, email, role, userID).forEach(System.out::println);
             return false;
         }
 

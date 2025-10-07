@@ -12,14 +12,14 @@ public class TicketManager {
     private Display display;
 
     // Constructeur
-    public TicketManager() {
+    public TicketManager(Display display) {
         this.allTickets = new ArrayList<>();
         this.statusManager = new statusManager();
         this.priorityManager = new PriorityManager();
         this.commentManager = new commentManager();
         this.assignationManager = new AssignationManager();
         this.descriptionManager = new descriptionManager();
-        this.display = new Display();
+        this.display = display;
     }
 
     // ============= GESTION DES TICKETS =============
@@ -44,7 +44,6 @@ public class TicketManager {
         }
 
         allTickets.remove(ticket);
-        commentManager.clearComments(ticketID);
         System.out.println("Ticket #" + ticketID + " supprimé du système.");
         return true;
     }
@@ -66,9 +65,34 @@ public class TicketManager {
 
     // Obtient les tickets par statut
     public List<Ticket> getTicketsByStatus(String status) {
-        return allTickets.stream()
-                .filter(ticket -> ticket.getStatus().equalsIgnoreCase(status))
-                .collect(Collectors.toList());
+        if (status == null || status.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Filtrer les tickets par statut
+        List<Ticket> filteredTickets = new ArrayList<>();
+        for (Ticket ticket : allTickets) {
+            if (ticket.getStatus() != null && ticket.getStatus().equalsIgnoreCase(status)) {
+                filteredTickets.add(ticket);
+            }
+        }
+        return filteredTickets;
+    }
+
+    // Obtient les tickets par priorité
+    public List<Ticket> getTicketsByPriority(String priority) {
+        if (priority == null || priority.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Filtrer les tickets par priorité
+        List<Ticket> filteredTickets = new ArrayList<>();
+        for (Ticket ticket : allTickets) {
+            if (ticket.getPriority() != null && ticket.getPriority().equalsIgnoreCase(priority)) {
+                filteredTickets.add(ticket);
+            }
+        }
+        return filteredTickets;
     }
 
     // Obtient les tickets d'un utilisateur (créés ou assignés)
@@ -77,40 +101,56 @@ public class TicketManager {
             return new ArrayList<>();
         }
 
-        return allTickets.stream()
-                .filter(ticket -> ticket.getAssignedUserId() == user.getUserID())
-                .collect(Collectors.toList());
-    }
+        // Filtrer les tickets par utilisateur
+        List<Ticket> userTickets = new ArrayList<>();
+        for (Ticket ticket : allTickets) {
+            if (ticket.getAssignedUserId() == user.getUserID()) {
+                userTickets.add(ticket);
+            }
+        }
 
-    // Obtient les tickets par priorité
-    public List<Ticket> getTicketsByPriority(String priority) {
-        return allTickets.stream()
-                .filter(ticket -> ticket.getPriority() != null && ticket.getPriority().equalsIgnoreCase(priority))
-                .collect(Collectors.toList());
+        return userTickets;
     }
 
     // ============= MODIFICATIONS VIA MANAGERS =============
 
     // Met à jour le statut d'un ticket
-    public boolean updateTicketStatus(int ticketID, String newStatus, User user) {
+    public boolean updateTicketStatus(int ticketID, String newStatus, User requestedBy) {
         Ticket ticket = getTicket(ticketID);
         if (ticket == null) {
             System.out.println("Erreur: Ticket #" + ticketID + " introuvable.");
             return false;
         }
 
-        return statusManager.updateStatus(ticket, newStatus, user);
+        // Si le nouveau statut est "TERMINÉ", désassigner le ticket après mise à jour
+        if (newStatus.equals("TERMINÉ")) {
+            return closeTicket(ticketID, requestedBy);
+        }
+
+        // Empêcher de remettre un ticket assigné à "OUVERT" sans le désassigner d'abord
+        if (newStatus.equals("OUVERT") && ticket.isAssigned()) {
+            System.out.println("Erreur: Un ticket assigné ne peut pas être remis à OUVERT directement, il doit d'abord être désassigné.");
+            return false;
+        }
+
+        return statusManager.updateStatus(ticket, newStatus, requestedBy);
     }
 
     // Met à jour la priorité d'un ticket
-    public boolean updateTicketPriority(int ticketID, String newPriority, User user) {
+    public boolean updateTicketPriority(int ticketID, String newPriority, User requestedBy) {
         Ticket ticket = getTicket(ticketID);
         if (ticket == null) {
             System.out.println("Erreur: Ticket #" + ticketID + " introuvable.");
             return false;
         }
 
-        return priorityManager.updatePriority(ticket, newPriority, user);
+        // Un ticket terminé ne peut pas voir sa priorité changée
+        if (ticket.getStatus().equals("TERMINÉ")) {
+            System.out.println("Erreur: La priorité d'un ticket terminé ne peut pas être changée.");
+            return false;
+        }
+
+        return priorityManager.updatePriority(ticket, newPriority, requestedBy);
     }
 
     // Assigne un ticket à un utilisateur
@@ -118,6 +158,12 @@ public class TicketManager {
         Ticket ticket = getTicket(ticketID);
         if (ticket == null) {
             System.out.println("Erreur: Ticket #" + ticketID + " introuvable.");
+            return false;
+        }
+
+        // Ne peut pas assigner un ticket terminé
+        if (ticket.getStatus().equals("TERMINÉ")) {
+            System.out.println("Impossible d'assigner un utilisateur, le ticket est terminé.");
             return false;
         }
 
@@ -149,7 +195,13 @@ public class TicketManager {
             return false;
         }
 
-        return commentManager.addComment(ticketID, comment, author);
+        // Vérifier que le ticket est assigné
+        if (ticket.isAssigned() == false) {
+            System.out.println("Erreur: Impossible d'ajouter un commentaire à un ticket non assigné.");
+            return false;
+        }
+
+        return commentManager.addComment(ticket, comment, author);
     }
 
     // Met à jour la description d'un ticket
@@ -160,9 +212,41 @@ public class TicketManager {
             return false;
         }
 
-        ticket.setDescription(newDescription);
-        System.out.println("Description du ticket #" + ticketID + " mise à jour.");
-        return true;
+        if (descriptionManager.updateDescription(ticket.getDescription(), newDescription)) {
+            System.out.println("Description du ticket #" + ticketID + " mise à jour.");
+            return true;
+        }
+        return false;
+    }
+
+    // Ajoute une image à la description d'un ticket
+    public boolean addImageToTicketDescription(int ticketID, String imagePath) {
+        Ticket ticket = getTicket(ticketID);
+        if (ticket == null) {
+            System.out.println("Erreur: Ticket #" + ticketID + " introuvable.");
+            return false;
+        }
+
+        if (descriptionManager.addImageToDescription(ticket.getDescription(), imagePath)) {
+            System.out.println("Image ajoutée à la description du ticket #" + ticketID + ".");
+            return true;
+        }
+        return false;
+    }
+
+    // Ajoute une vidéo à la description d'un ticket
+    public boolean addVideoToTicketDescription(int ticketID, String videoPath) {
+        Ticket ticket = getTicket(ticketID);
+        if (ticket == null) {
+            System.out.println("Erreur: Ticket #" + ticketID + " introuvable.");
+            return false;
+        }
+
+        if (descriptionManager.addVideoToDescription(ticket.getDescription(), videoPath)) {
+            System.out.println("Vidéo ajoutée à la description du ticket #" + ticketID + ".");
+            return true;
+        }
+        return false;
     }
 
     // Termine un ticket (après validation)
@@ -178,7 +262,11 @@ public class TicketManager {
             return false;
         }
 
-        return statusManager.updateStatus(ticket, "TERMINÉ", user);
+        if (statusManager.updateStatus(ticket, "TERMINÉ", user)) {
+            unassignTicket(ticketID, user);
+            return true;
+        }
+        return false;
     }
 
     // ============= AFFICHAGE VIA DISPLAY =============
@@ -191,8 +279,7 @@ public class TicketManager {
             return;
         }
 
-        List<String> comments = commentManager.getCommentsWithAuthors(ticketID);
-        display.displayTicketWithComments(ticket, comments);
+        display.displayTicketWithComments(ticket, commentManager.getComments(ticket));
     }
 
     // Affiche tous les tickets
@@ -208,7 +295,7 @@ public class TicketManager {
             return false;
         }
 
-        List<String> comments = commentManager.getCommentsWithAuthors(ticketID);
+        List<String> comments = commentManager.getComments(ticket);
         return display.exportTicketToPDF(ticket, null, comments, filePath);
     }
 
@@ -241,20 +328,20 @@ public class TicketManager {
         display.displayTicketsByUser(tickets, user);
     }
 
-    // Obtient les statistiques d'assignation
-    public void displayAssignationStatistics() {
-        assignationManager.displayAssignmentStatistics();
-    }
-
     // Recherche de tickets par titre (contient)
-    public List<Ticket> searchTicketsByTitle(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
+    public List<Ticket> searchTicketsByTitle(String title) {
+        if (title == null || title.trim().isEmpty()) {
             return new ArrayList<>();
         }
 
-        return allTickets.stream()
-                .filter(ticket -> ticket.getTitle().toLowerCase().contains(keyword.toLowerCase()))
-                .collect(Collectors.toList());
+        // Rechercher les tickets par titre
+        List<Ticket> filteredTickets = new ArrayList<>();
+        for (Ticket ticket : allTickets) {
+            if (ticket.getTitle() != null && ticket.getTitle().toLowerCase().contains(title.toLowerCase())) {
+                filteredTickets.add(ticket);
+            }
+        }
+        return filteredTickets;
     }
 
     // Obtient les tickets critiques
@@ -264,9 +351,14 @@ public class TicketManager {
 
     // Obtient les tickets ouverts non assignés
     public List<Ticket> getUnassignedOpenTickets() {
-        return allTickets.stream()
-                .filter(ticket -> ticket.getStatus().equals("OUVERT") && ticket.getAssignedUserId() == 0)
-                .collect(Collectors.toList());
+        // Filtrer les tickets ouverts non assignés
+        List<Ticket> filteredTickets = new ArrayList<>();
+        for (Ticket ticket : allTickets) {
+            if (ticket.getStatus() != null && ticket.getStatus().equals("OUVERT") && !ticket.isAssigned()) {
+                filteredTickets.add(ticket);
+            }
+        }
+        return filteredTickets;
     }
 
     // ============= GETTERS POUR LES MANAGERS =============

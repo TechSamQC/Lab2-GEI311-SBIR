@@ -1,6 +1,7 @@
 import java.util.*;
 
 public class statusManager {
+    
     private List<String> validStatuses;
     private Map<String, List<String>> statusTransitions;
 
@@ -27,8 +28,8 @@ public class statusManager {
     }
 
     // Met à jour le statut d'un ticket
-    public boolean updateStatus(Ticket ticket, String newStatus, User user) {
-        if (ticket == null || user == null) {
+    public boolean updateStatus(Ticket ticket, String newStatus, User requester) {
+        if (ticket == null || requester == null) {
             System.out.println("Erreur: Le ticket ou l'utilisateur est null.");
             return false;
         }
@@ -39,27 +40,28 @@ public class statusManager {
             return false;
         }
 
-        String currentStatus = ticket.getStatus();
-
         // Vérification de la transition
-        if (!validateTransition(currentStatus, newStatus)) {
-            System.out.println("Erreur: Transition de statut invalide de " + currentStatus + " vers " + newStatus);
+        if (!validateTransition(ticket.getStatus(), newStatus)) {
+            System.out.println("Erreur: Transition de statut invalide de " + ticket.getStatus() + " vers " + newStatus);
+            System.out.println("Transitions valides depuis " + ticket.getStatus() + ": " + getValidTransitions(ticket.getStatus()));
             return false;
         }
 
         // Vérification des permissions
-        if (!canUserChangeStatus(user, ticket, newStatus)) {
+        if (!canUserChangeStatus(requester, ticket, newStatus)) {
             System.out.println("Erreur: Vous n'avez pas la permission de changer ce statut.");
             return false;
         }
 
         // Mise à jour du statut
+        String oldStatus = ticket.getStatus();
         ticket.updateStatus(newStatus);
+        System.out.println("Statut du ticket " + ticket.getTicketID() + " changé de " + oldStatus + " à " + newStatus);
         return true;
     }
 
     // Valide si un statut est dans la liste des statuts valides
-    public boolean validateStatus(String status) {
+    private boolean validateStatus(String status) {
         if (status == null || status.trim().isEmpty()) {
             return false;
         }
@@ -67,7 +69,7 @@ public class statusManager {
     }
 
     // Valide si une transition est autorisée
-    public boolean validateTransition(String currentStatus, String newStatus) {
+    private boolean validateTransition(String currentStatus, String newStatus) {
         if (currentStatus == null || newStatus == null) {
             return false;
         }
@@ -77,6 +79,7 @@ public class statusManager {
             return false;
         }
 
+        // Obtenir les transitions possibles depuis le statut actuel
         List<String> allowedTransitions = statusTransitions.get(currentStatus.toUpperCase());
         if (allowedTransitions == null) {
             return false;
@@ -86,18 +89,18 @@ public class statusManager {
     }
 
     // Vérifie si l'utilisateur peut changer le statut
-    public boolean canUserChangeStatus(User user, Ticket ticket, String newStatus) {
-        if (user == null || ticket == null) {
+    private boolean canUserChangeStatus(User requester, Ticket ticket, String newStatus) {
+        if (requester == null || ticket == null) {
             return false;
         }
 
         // Les admins peuvent toujours changer les statuts
-        if (user.isAdmin()) {
+        if (requester.isAdmin()) {
             return true;
         }
 
         // Les utilisateurs réguliers peuvent seulement mettre un ticket assigné en VALIDATION
-        if (ticket.getAssignedUserId() == user.getUserID() && 
+        if (ticket.getAssignedUserId() == requester.getUserID() && 
             ticket.getStatus().equalsIgnoreCase("ASSIGNÉ") && 
             newStatus.equalsIgnoreCase("VALIDATION")) {
             return true;
@@ -108,7 +111,7 @@ public class statusManager {
     }
 
     // Obtient les transitions valides depuis un statut donné
-    public List<String> getValidTransitions(String currentStatus) {
+    private List<String> getValidTransitions(String currentStatus) {
         if (currentStatus == null) {
             return new ArrayList<>();
         }

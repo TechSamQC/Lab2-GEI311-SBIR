@@ -18,12 +18,14 @@ public class descriptionManager {
 
     // Crée une nouvelle description avec du texte
     public Description createDescription(String textContent) {
-        Description description = new Description(textContent);
-        
-        if (!validateDescription(description)) {
-            System.out.println("Attention: La description créée contient des erreurs de validation.");
+        // Valide le texte avant de créer la description
+        if (!descriptionValidator.validateTextContent(textContent)) {
+            System.out.println("Attention: La description ne peut pas être créée avec le texte fourni car elle ne passe pas la validation.");
+            return null;
         }
-        
+
+        // Crée la description
+        Description description = new Description(textContent);
         return description;
     }
 
@@ -168,10 +170,5 @@ public class descriptionManager {
     // Obtient le validateur
     public DescriptionValidator getDescriptionValidator() {
         return descriptionValidator;
-    }
-
-    // Définit un nouveau validateur
-    public void setDescriptionValidator(DescriptionValidator validator) {
-        this.descriptionValidator = validator;
     }
 }
