@@ -94,14 +94,12 @@ public class Ticket {
     // Méthodes spécifiques au ticket
     public void assignTo(User user) {
         // Assigner un ticket à un utilisateur
-        this.status = "ASSIGNÉ";
         this.assignedUserId = user.getUserID();
         this.updateDate = LocalDate.now().toString();
     }
 
     // Méthode interne pour désassigner un ticket (utilisée par AssignationManager)
     public void desassignTicketInternal(Ticket ticket) {
-        ticket.status = "OUVERT";
         ticket.assignedUserId = 0;
         ticket.updateDate = LocalDate.now().toString();
     }

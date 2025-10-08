@@ -190,7 +190,7 @@ public class Main {
             }
         }
 
-        System.out.println("\n--- Tickets assignes a Alice ---");
+        System.out.println("\n--- Tickets assignes a Mike  qui est developpeur 1 ---");
         ticketManager.displayTicketsByUser(dev1);
 
         // ========================================================================
@@ -208,13 +208,13 @@ public class Main {
         System.out.println("\n--- Affichage des tickets HAUTE priorite ---");
         ticketManager.displayTicketsByPriority("HAUTE");
 
-        System.out.println("\n--- Affichage des tickets CRITIQUE ---");
-        List<Ticket> criticalTickets = ticketManager.getCriticalTickets();
-        if (criticalTickets.isEmpty()) {
+        //System.out.println("\n--- Affichage des tickets CRITIQUE ---");
+        //List<Ticket> criticalTickets = ticketManager.getCriticalTickets();
+        /*if (criticalTickets.isEmpty()) {
             System.out.println("Aucun ticket critique actuellement.");
         } else {
             System.out.println("Nombre de tickets critiques: " + criticalTickets.size());
-        }
+        }*/
 
         // ========================================================================
         // PARTIE 8: RECHERCHE ET FILTRAGE

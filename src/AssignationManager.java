@@ -48,7 +48,6 @@ public class AssignationManager {
             System.out.println("Erreur: Vous n'avez pas la permission de désassigner ce ticket.");
             return false;
         }
-
         // Désassigner le ticket
         ticket.desassignTicketInternal(ticket);
 

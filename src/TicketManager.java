@@ -166,6 +166,7 @@ public class TicketManager {
             return false;
         }
 
+        statusManager.updateStatus(ticket, "ASSIGNÉ", assignedBy);
         return assignationManager.assignTicket(ticket, user, assignedBy);
     }
 
@@ -175,6 +176,11 @@ public class TicketManager {
         if (ticket == null) {
             System.out.println("Erreur: Ticket #" + ticketID + " introuvable.");
             return false;
+        }
+
+        // Si le ticket n'est pas terminé, le remettre à OUVERT
+        if (!ticket.getStatus().equals("TERMINÉ")) {
+            statusManager.updateStatus(ticket, "OUVERT", requestedBy);
         }
 
         return assignationManager.unassignTicket(ticket, requestedBy);
@@ -262,9 +268,12 @@ public class TicketManager {
         }
 
         if (statusManager.updateStatus(ticket, "TERMINÉ", user)) {
-            unassignTicket(ticketID, user);
+            if (ticket.isAssigned()) {
+                unassignTicket(ticketID, user);
+            }
             return true;
         }
+        
         return false;
     }
 
