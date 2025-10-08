@@ -1,0 +1,3 @@
+Voici le lien de notre vidéo de démonstration : https://uqac.ca.panopto.com/Panopto/Pages/Viewer.aspx?id=743d76a0-bc2e-43b0-8375-b370002f6239
+
+Voici le lien GitHub : https://github.com/TechSamQC/Lab2-GEI311-SBIR/tree/main
