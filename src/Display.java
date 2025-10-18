@@ -1,13 +1,80 @@
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import javax.swing.*;
+import java.awt.*;
 
-public class Display {
+public class Display extends JFrame{
     private SimpleDateFormat dateFormat;
+
+    // Composants GUI
+    private JList<Ticket> ticketList;
+    private JTextField titreField;
+    private JTextArea descriptionArea;
+    private JComboBox<String> statutBox;
+    private JComboBox<String> prioriteBox;
+    private JButton saveButton;
+    private JPanel formPanel;
+    private JScrollPane affichageTickets;
+
+
+    // Gestionnaires
+    private TicketManager ticketManager;
+    private descriptionManager descManager;
+    private statusManager statusManager;
+    private PriorityManager priorityManager;
+    private TicketCreator ticketCreator;
+    private UserCreator userCreator;
 
     // Constructeur
     public Display() {
+        // Configuration de la fenêtre
         this.dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        setTitle("Programme de gestion des tickets");
+        setSize(1250, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Initialisation des gestionnaires
+        ticketManager = new TicketManager(this);
+        descManager = ticketManager.getDescriptionManager();
+        statusManager = ticketManager.getStatusManager();
+        priorityManager = ticketManager.getPriorityManager();
+        ticketCreator = new TicketCreator(0, ticketManager); // ticketCreator sera relié avec ticketManager
+        userCreator = new UserCreator();
+
+        // Configuration du layout
+        // ----- Liste à gauche -----
+        ticketList = new JList<>();
+        affichageTickets = new JScrollPane(ticketList);
+        affichageTickets.setBorder(BorderFactory.createTitledBorder("Tickets"));
+        add(affichageTickets, BorderLayout.WEST);
+
+        // ----- Formulaire à droite -----
+        formPanel = new JPanel(new GridLayout(6, 1));
+
+        titreField = new JTextField();
+        descriptionArea = new JTextArea();
+        statutBox = new JComboBox<>(statusManager.getValidStatuses().toArray(new String[0]));
+        prioriteBox = new JComboBox<>(priorityManager.getValidPriorities().toArray(new String[0]));
+        saveButton = new JButton("Créer / Modifier");
+
+        formPanel.add(new JLabel("Titre :"));
+        formPanel.add(titreField);
+        formPanel.add(new JLabel("Description :"));
+        formPanel.add(new JScrollPane(descriptionArea));
+        formPanel.add(new JLabel("Statut :"));
+        formPanel.add(statutBox);
+        formPanel.add(new JLabel("Priorité :"));
+        formPanel.add(prioriteBox);
+        formPanel.add(saveButton);
+
+        add(formPanel, BorderLayout.CENTER);
+
+        setVisible(true);
+    }
+
+    public void ticketlistimport(List<Ticket> tickets) {
+        ticketList.setListData(tickets.toArray(new Ticket[0]));
     }
 
     // Affiche un ticket simple
@@ -77,6 +144,8 @@ public class Display {
             System.out.println(formatTicketInfo(ticket));
             System.out.println("────────────────────────────────────────────────────────");
         }
+
+        ticketList.setListData(tickets.toArray(new Ticket[0]));
     }
 
     // Affiche les tickets filtrés par statut
@@ -333,6 +402,11 @@ public class Display {
                 System.out.println("[" + (i + 1) + "] " + comments.get(i));
             }
         }
+    }
+
+    //Getters
+    public TicketManager getTicketManager() {
+        return ticketManager;
     }
 }
 
