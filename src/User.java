@@ -43,6 +43,12 @@ public class User {
         this.role = role;
     }
 
+    // Méthode toString pour afficher les infos simples du user
+    @Override
+    public String toString() {
+        return "User " + userID + ": " + name + " (" + role + ") <" + email + ">";
+    }
+
     // Vérifie si l'utilisateur est un admin
     public boolean isAdmin() {
         return role.equalsIgnoreCase("ADMIN");
