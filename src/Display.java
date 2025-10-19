@@ -5,6 +5,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class Display extends JFrame{
+    // Format de date
     private SimpleDateFormat dateFormat;
 
     // Composants GUI
@@ -45,6 +46,7 @@ public class Display extends JFrame{
         // Configuration du layout
         // ----- Liste à gauche -----
         ticketList = new JList<>();
+        ticketList.setListData(ticketManager.getAllTickets().toArray(new Ticket[0]));
         affichageTickets = new JScrollPane(ticketList);
         affichageTickets.setBorder(BorderFactory.createTitledBorder("Tickets"));
         add(affichageTickets, BorderLayout.WEST);
@@ -71,10 +73,6 @@ public class Display extends JFrame{
         add(formPanel, BorderLayout.CENTER);
 
         setVisible(true);
-    }
-
-    public void ticketlistimport(List<Ticket> tickets) {
-        ticketList.setListData(tickets.toArray(new Ticket[0]));
     }
 
     // Affiche un ticket simple
