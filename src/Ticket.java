@@ -78,17 +78,10 @@ public class Ticket {
         this.updateDate = LocalDate.now().toString();
     }
 
-    // Méthode toString pour afficher les détails du ticket
+    // Méthode toString pour afficher les infos simples sur le ticket
     @Override
     public String toString() {
-        return "Informations du ticket "+ ticketID + " (" + title + ") : \n" +
-                "\t Description : " + description + ". \n" +
-                "\t Status : " + status + "\n" +
-                "\t Priorité : " + priority + "\n" +
-                "\t Date de création : " + creationDate + "\n" +
-                "\t Date de mise à jour : " + updateDate + "\n" +
-                "\t ID de l'utilisateur assigné : " + assignedUserId + "\n" +
-                "\t Commentaires : " + comments + "\n";
+        return "Ticket "+ ticketID + " (" + title + ").";
     }
 
     // Méthodes spécifiques au ticket
