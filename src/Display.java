@@ -1,13 +1,127 @@
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
+import java.awt.*;
 
-public class Display {
+public class Display extends JFrame{ // Classe pour l'affichage des tickets et interface GUI
+    // Utilisateurs
+    private List<User> allUsers;
+
+    // Format de date
     private SimpleDateFormat dateFormat;
+
+    // Composants GUI
+    private JList<Ticket> ticketList;
+    private JList<User> userList;
+    private JTextField titreField;
+    private JTextField userNameField;
+    private JTextField userEmailField;
+    private JTextArea descriptionArea;
+    private JComboBox<String> statutBox;
+    private JComboBox<String> prioriteBox;
+    private JComboBox<String> userTypeBox;
+    private JButton saveButton;
+    private JButton exportPDFButton;
+    private JButton createUserButton;
+    private JPanel formPanel;
+    private JPanel userPanel;
+    private JScrollPane affichageTickets;
+    private JScrollPane affichageUtilisateurs;
+
+    // Gestionnaires
+    private TicketManager ticketManager;
+    private descriptionManager descManager;
+    private statusManager statusManager;
+    private PriorityManager priorityManager;
+    private TicketCreator ticketCreator;
+    private UserCreator userCreator;
 
     // Constructeur
     public Display() {
-        this.dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        // Configuration de la fenêtre
+        this.dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"); // Format de date
+        setTitle("Programme de gestion des tickets"); // Titre de la fenêtre
+        setSize(1350, 650); // Taille de la fenêtre
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Action à la fermeture
+
+        // Initialisation des gestionnaires
+        ticketManager = new TicketManager(this); // Création du ticketManager avec liaison à Display
+        descManager = ticketManager.getDescriptionManager(); // Récupération du descriptionManager
+        statusManager = ticketManager.getStatusManager(); // Récupération du statusManager
+        priorityManager = ticketManager.getPriorityManager(); // Récupération du priorityManager
+        ticketCreator = new TicketCreator(0, ticketManager); // ticketCreator sera relié avec ticketManager
+        userCreator = new UserCreator(); // Création du userCreator
+
+        // Initialisation de la liste des utilisateurs
+        allUsers = new ArrayList<>(List.of(new User(0, "SYS ADMIN", "SYSTEM@EXAMPLE.COM", "ADMIN"))); /*Initialisation de la liste
+        des utilisateurs avec utilisateur système par défaut*/
+
+        // 1 : Initialiser les composants GUI
+        initComponents();
+
+        // 2 : Écouter les événements
+        //initListeners();
+
+        // 3 : Rendre la fenêtre visible
+        setVisible(true);
+    }
+
+    private void initComponents() {
+        // Configuration du layout du GUI
+        // Liste à gauche : affichage des tickets
+        ticketList = new JList<>(); // Liste des tickets qui permet de sélectionner un ticket
+        ticketList.setListData(ticketManager.getAllTickets().toArray(new Ticket[0])); // Charger les tickets existants sous format JList
+        affichageTickets = new JScrollPane(ticketList); // Affichage qui permet le défilement
+
+        // Formulaire au centre : création/modification de tickets
+        // Champs de formulaire
+        titreField = new JTextField(); // Champ de texte pour le titre
+        descriptionArea = new JTextArea(); // Zone de texte pour la description
+        statutBox = new JComboBox<>(statusManager.getValidStatuses().toArray(new String[0])); // Liste déroulante pour le statut
+        prioriteBox = new JComboBox<>(priorityManager.getValidPriorities().toArray(new String[0])); // Liste déroulante pour la priorité
+        saveButton = new JButton("Créer / Modifier"); // Bouton pour créer ou modifier un ticket
+        // Panneau de creation/modification
+        formPanel = new JPanel(new GridLayout(5, 1)); // Panneau de formulaire pour créer/modifier un ticket
+        formPanel.add(new JLabel("Titre :")); // Étiquette pour le titre
+        formPanel.add(titreField); // Ajout du champ de titre
+        formPanel.add(new JLabel("Description :")); // Étiquette pour la description
+        formPanel.add(new JScrollPane(descriptionArea)); // Ajout de la zone de texte pour la description
+        formPanel.add(new JLabel("Statut :")); // Étiquette pour le statut
+        formPanel.add(statutBox); // Ajout de la liste déroulante pour le statut
+        formPanel.add(new JLabel("Priorité :")); // Étiquette pour la priorité
+        formPanel.add(prioriteBox); // Ajout de la liste déroulante pour la priorité
+        formPanel.add(saveButton); // Ajout du bouton de création/modification
+
+        //Formulaire à droite : Création d'utilisateurs
+        // Champs de gestion des utilisateurs
+        createUserButton = new JButton("Créer"); // Bouton pour créer un utilisateur
+        userTypeBox = new JComboBox<>(new String[]{"ADMIN", "DEVELOPER", "USER"}); // Liste déroulante pour le rôle utilisateur
+        userNameField = new JTextField(); // Champ de texte pour le nom d'utilisateur
+        userEmailField = new JTextField(); // Champ de texte pour l'email
+        // Panneau des utilisateurs
+        userPanel = new JPanel(new GridLayout(4, 1)); // Panneau pour la gestion des utilisateurs
+        userPanel.add(new JLabel("Rôle utilisateur :")); // Étiquette pour le rôle utilisateur
+        userPanel.add(userTypeBox); // Ajout de la liste déroulante pour le rôle utilisateur
+        userPanel.add(new JLabel("Nom d'utilisateur :")); // Étiquette pour le nom d'utilisateur
+        userPanel.add(userNameField); // Champ de texte pour le nom d'utilisateur
+        userPanel.add(new JLabel("Email :")); // Étiquette pour l'email
+        userPanel.add(userEmailField); // Champ de texte pour l'email
+        userPanel.add(createUserButton); // Ajout du bouton de création d'utilisateur
+        // Liste de sélection des utilisateurs en haut
+        userList = new JList<>(allUsers.toArray(new User[0])); // Liste des utilisateurs qui permet de sélectionner un utilisateur
+        affichageUtilisateurs = new JScrollPane(userList); // Affichage qui permet le défilement
+
+        // Ajout des panneaux à la fenêtre principale
+        affichageTickets.setBorder(BorderFactory.createTitledBorder("Tickets")); // Bordure avec titre pour la liste des tickets
+        formPanel.setBorder(BorderFactory.createTitledBorder("Créer / Modifier un Ticket")); // Bordure avec titre pour le formulaire
+        affichageUtilisateurs.setBorder(BorderFactory.createTitledBorder("Sélectionner l'utilisateur :")); // Bordure avec titre pour la liste des utilisateurs
+        userPanel.setBorder(BorderFactory.createTitledBorder("Créer un nouvel utilisateur")); // Bordure avec titre pour le panneau des utilisateurs
+        add(affichageTickets, BorderLayout.WEST); // Ajouter la liste des tickets à gauche
+        add(formPanel, BorderLayout.CENTER); // Ajouter le formulaire au centre
+        add(affichageUtilisateurs, BorderLayout.NORTH); // Ajouter la liste des utilisateurs en haut
+        add(userPanel, BorderLayout.EAST); // Ajouter la liste des utilisateurs à droite
     }
 
     // Affiche un ticket simple
@@ -77,6 +191,8 @@ public class Display {
             System.out.println(formatTicketInfo(ticket));
             System.out.println("────────────────────────────────────────────────────────");
         }
+
+        ticketList.setListData(tickets.toArray(new Ticket[0]));
     }
 
     // Affiche les tickets filtrés par statut
@@ -333,6 +449,11 @@ public class Display {
                 System.out.println("[" + (i + 1) + "] " + comments.get(i));
             }
         }
+    }
+
+    //Getters
+    public TicketManager getTicketManager() {
+        return ticketManager;
     }
 }
 

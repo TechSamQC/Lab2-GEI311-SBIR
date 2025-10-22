@@ -8,7 +8,7 @@ public class Main {
 
         // Initialisation du système
         Display display = new Display();
-        TicketManager ticketManager = new TicketManager(display);
+        TicketManager ticketManager = display.getTicketManager();
         descriptionManager descManager = ticketManager.getDescriptionManager();
         TicketCreator ticketCreator = new TicketCreator(0, ticketManager); // ticketCreator sera relié avec ticketManager
         UserCreator userCreator = new UserCreator();
