@@ -47,6 +47,10 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
     private PriorityManager priorityManager;
     private TicketCreator ticketCreator;
     private UserCreator userCreator;
+    
+    // Validateurs
+    private ticketValidator ticketValidator;
+    private userValidator userValidator;
 
     // Constructeur
     public Display() {
@@ -63,6 +67,10 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         priorityManager = ticketManager.getPriorityManager(); // Récupération du priorityManager
         ticketCreator = new TicketCreator(0, ticketManager); // ticketCreator sera relié avec ticketManager
         userCreator = new UserCreator(); // Création du userCreator
+        
+        // Initialisation des validateurs
+        ticketValidator = new ticketValidator(); // Validateur de tickets
+        userValidator = new userValidator(); // Validateur d'utilisateurs
 
         // Initialisation de la liste des utilisateurs
         allUsers = new ArrayList<>(List.of(new User(0, "SYS ADMIN", "SYSTEM@EXAMPLE.COM", "ADMIN"))); /*Initialisation de la liste
@@ -395,20 +403,22 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
     // Méthode pour créer ou modifier un ticket
     private void creerOuModifierTicket() {
         try {
-            // Validation des champs
+            // Récupération des champs
             String titre = titreField.getText().trim();
             String description = descriptionArea.getText().trim();
             String priorite = (String) prioriteBox.getSelectedItem();
             
-            // Vérifier que les champs obligatoires sont remplis
-            if (titre.isEmpty()) {
+            // Vérifier qu'un utilisateur est sélectionné
+            User selectedUser = userList.getSelectedValue();
+            if (selectedUser == null) {
                 JOptionPane.showMessageDialog(this, 
-                    "Le titre du ticket ne peut pas être vide !", 
+                    "Veuillez sélectionner un utilisateur créateur du ticket !", 
                     "Erreur de validation", 
                     JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+            return;
+        }
 
+            // Vérifier que la description n'est pas vide (pas dans ticketValidator)
             if (description.isEmpty()) {
                 JOptionPane.showMessageDialog(this, 
                     "La description du ticket ne peut pas être vide !", 
@@ -417,19 +427,26 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
                 return;
             }
 
-            // Vérifier qu'un utilisateur est sélectionné
-            User selectedUser = userList.getSelectedValue();
-            if (selectedUser == null) {
-                JOptionPane.showMessageDialog(this, 
-                    "Veuillez sélectionner un utilisateur créateur du ticket !", 
-                    "Erreur de validation", 
-                    JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
             // Vérifier si on modifie un ticket existant ou on en crée un nouveau
             Ticket selectedTicket = ticketList.getSelectedValue();
+            int ticketID = selectedTicket != null ? selectedTicket.getTicketID() : 0;
             
+            // UTILISER LE VALIDATEUR pour valider le titre et la priorité
+            List<String> errors = ticketValidator.getValidationErrors(titre, priorite, ticketID);
+            
+            if (!errors.isEmpty()) {
+                // Afficher toutes les erreurs de validation
+                StringBuilder errorMessage = new StringBuilder("Erreurs de validation :\n\n");
+                for (String error : errors) {
+                    errorMessage.append("• ").append(error).append("\n");
+                }
+                JOptionPane.showMessageDialog(this, 
+                    errorMessage.toString(), 
+                    "Erreur de validation", 
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
             if (selectedTicket != null) {
                 // Mode modification : mettre à jour le ticket existant
                 selectedTicket.setTitle(titre);
@@ -472,24 +489,24 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
             String email = userEmailField.getText().trim();
             String role = (String) userTypeBox.getSelectedItem();
 
-            // Validation des champs
-            if (nom.isEmpty()) {
+            // UTILISER LE VALIDATEUR pour valider les données utilisateur
+            // Note: on passe 0 comme userID car c'est une création (l'ID sera généré)
+            List<String> errors = userValidator.getValidationErrors(nom, email, role, 0);
+            
+            if (!errors.isEmpty()) {
+                // Afficher toutes les erreurs de validation
+                StringBuilder errorMessage = new StringBuilder("Erreurs de validation :\n\n");
+                for (String error : errors) {
+                    errorMessage.append("• ").append(error).append("\n");
+                }
                 JOptionPane.showMessageDialog(this, 
-                    "Le nom de l'utilisateur ne peut pas être vide !", 
+                    errorMessage.toString(), 
                     "Erreur de validation", 
                     JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+            return;
+        }
 
-            if (email.isEmpty()) {
-                JOptionPane.showMessageDialog(this, 
-                    "L'email de l'utilisateur ne peut pas être vide !", 
-                    "Erreur de validation", 
-                    JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            // Créer l'utilisateur avec UserCreator
+            // Créer l'utilisateur avec UserCreator (qui fait aussi sa propre validation)
             User newUser = userCreator.createUser(nom, email, role);
             
             // Ajouter à la liste des utilisateurs
@@ -850,7 +867,7 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
             List<String> comments = ticket.getComments();
             if (comments.isEmpty()) {
                 historiqueArea.append("Aucun historique disponible.\n");
-            } else {
+        } else {
                 for (String comment : comments) {
                     historiqueArea.append("• " + comment + "\n");
                 }
