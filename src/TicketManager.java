@@ -277,64 +277,7 @@ public class TicketManager {
         return false;
     }
 
-    // ============= AFFICHAGE VIA DISPLAY =============
-
-    // Affiche un ticket
-    public void displayTicket(int ticketID) {
-        Ticket ticket = getTicket(ticketID);
-        if (ticket == null) {
-            System.out.println("Erreur: Ticket #" + ticketID + " introuvable.");
-            return;
-        }
-
-        display.displayTicketWithComments(ticket, commentManager.getComments(ticket));
-    }
-
-    // Affiche tous les tickets
-    public void displayAllTickets() {
-        display.displayAllTickets(allTickets);
-    }
-
-    // Exporte un ticket en PDF
-    public boolean exportTicketToPDF(int ticketID, String filePath) {
-        Ticket ticket = getTicket(ticketID);
-        if (ticket == null) {
-            System.out.println("Erreur: Ticket #" + ticketID + " introuvable.");
-            return false;
-        }
-
-        List<String> comments = commentManager.getComments(ticket);
-        return display.exportTicketToPDF(ticket, null, comments, filePath);
-    }
-
     // ============= MÉTHODES UTILITAIRES =============
-
-    // Affiche les statistiques du système
-    public void displaySystemStatistics() {
-        int total = allTickets.size();
-        int open = getTicketsByStatus("OUVERT").size() + getTicketsByStatus("ASSIGNÉ").size();
-        int closed = getTicketsByStatus("TERMINÉ").size();
-        
-        display.displayStatistics(total, open, closed);
-    }
-
-    // Obtient les tickets par statut et les affiche
-    public void displayTicketsByStatus(String status) {
-        List<Ticket> tickets = getTicketsByStatus(status);
-        display.displayTicketsByStatus(tickets, status);
-    }
-
-    // Obtient les tickets par priorité et les affiche
-    public void displayTicketsByPriority(String priority) {
-        List<Ticket> tickets = getTicketsByPriority(priority);
-        display.displayTicketsByPriority(tickets, priority);
-    }
-
-    // Obtient les tickets d'un utilisateur et les affiche
-    public void displayTicketsByUser(User user) {
-        List<Ticket> tickets = getTicketsByUser(user);
-        display.displayTicketsByUser(tickets, user);
-    }
 
     // Recherche de tickets par titre (contient)
     public List<Ticket> searchTicketsByTitle(String title) {
