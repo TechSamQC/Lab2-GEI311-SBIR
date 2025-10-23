@@ -8,6 +8,7 @@ import java.awt.*;
 public class Display extends JFrame{ // Classe pour l'affichage des tickets et interface GUI
     // Utilisateurs
     private List<User> allUsers;
+    private User currentUser;
 
     // Format de date
     private SimpleDateFormat dateFormat;
@@ -19,14 +20,19 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
     private JTextField userNameField;
     private JTextField userEmailField;
     private JTextArea descriptionArea;
+    private JTextArea commentArea;
     private JComboBox<String> statutBox;
     private JComboBox<String> prioriteBox;
     private JComboBox<String> userTypeBox;
+    private JComboBox<String> filterStatusBox;
     private JButton saveButton;
+    private JButton createButton;
     private JButton exportPDFButton;
     private JButton createUserButton;
     private JPanel formPanel;
+    private JPanel ticketPanel;
     private JPanel userPanel;
+    private JPanel exportPanel;
     private JScrollPane affichageTickets;
     private JScrollPane affichageUtilisateurs;
 
@@ -47,7 +53,7 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Action à la fermeture
 
         // Initialisation des gestionnaires
-        ticketManager = new TicketManager(this); // Création du ticketManager avec liaison à Display
+        ticketManager = new TicketManager(); // Création du ticketManager
         descManager = ticketManager.getDescriptionManager(); // Récupération du descriptionManager
         statusManager = ticketManager.getStatusManager(); // Récupération du statusManager
         priorityManager = ticketManager.getPriorityManager(); // Récupération du priorityManager
@@ -70,31 +76,40 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
 
     private void initComponents() {
         // Configuration du layout du GUI
-        // Liste à gauche : affichage des tickets
+        // Liste À GAUCHE : affichage des tickets
         ticketList = new JList<>(); // Liste des tickets qui permet de sélectionner un ticket
         ticketList.setListData(ticketManager.getAllTickets().toArray(new Ticket[0])); // Charger les tickets existants sous format JList
+        filterStatusBox = new JComboBox<>(statusManager.getValidStatuses().toArray(new String[0])); // Liste déroulante pour filtrer par statut
         affichageTickets = new JScrollPane(ticketList); // Affichage qui permet le défilement
+        ticketPanel = new JPanel(new BorderLayout()); // Panneau pour la liste des tickets
+        ticketPanel.add(affichageTickets, BorderLayout.CENTER); // Ajouter l'affichage des tickets au panneau des tickets
+        ticketPanel.add(filterStatusBox, BorderLayout.NORTH); // Ajouter la liste de filtre au panneau des tickets en haut
 
-        // Formulaire au centre : création/modification de tickets
+        // Formulaire AU CENTRE : création/modification de tickets
         // Champs de formulaire
         titreField = new JTextField(); // Champ de texte pour le titre
         descriptionArea = new JTextArea(); // Zone de texte pour la description
+        commentArea = new JTextArea(); // Zone de texte pour les commentaires
         statutBox = new JComboBox<>(statusManager.getValidStatuses().toArray(new String[0])); // Liste déroulante pour le statut
         prioriteBox = new JComboBox<>(priorityManager.getValidPriorities().toArray(new String[0])); // Liste déroulante pour la priorité
-        saveButton = new JButton("Créer / Modifier"); // Bouton pour créer ou modifier un ticket
+        saveButton = new JButton("Modifier ticket"); // Bouton pour modifier un ticket
+        createButton = new JButton("Créer ticket"); // Bouton pour créer un ticket
         // Panneau de creation/modification
-        formPanel = new JPanel(new GridLayout(5, 1)); // Panneau de formulaire pour créer/modifier un ticket
+        formPanel = new JPanel(new GridLayout(6, 1)); // Panneau de formulaire pour créer/modifier un ticket
         formPanel.add(new JLabel("Titre :")); // Étiquette pour le titre
         formPanel.add(titreField); // Ajout du champ de titre
         formPanel.add(new JLabel("Description :")); // Étiquette pour la description
         formPanel.add(new JScrollPane(descriptionArea)); // Ajout de la zone de texte pour la description
+        formPanel.add(new JLabel("Commentaire/Ajouter un commentaire :")); // Étiquette pour les commentaires
+        formPanel.add(new JScrollPane(commentArea)); // Ajout de la zone de texte pour les commentaires
         formPanel.add(new JLabel("Statut :")); // Étiquette pour le statut
         formPanel.add(statutBox); // Ajout de la liste déroulante pour le statut
         formPanel.add(new JLabel("Priorité :")); // Étiquette pour la priorité
         formPanel.add(prioriteBox); // Ajout de la liste déroulante pour la priorité
-        formPanel.add(saveButton); // Ajout du bouton de création/modification
+        formPanel.add(createButton); // Ajout du bouton de création de ticket
+        formPanel.add(saveButton); // Ajout du bouton de modification de ticket
 
-        //Formulaire à droite : Création d'utilisateurs
+        //Formulaire À DROITE : Création d'utilisateurs
         // Champs de gestion des utilisateurs
         createUserButton = new JButton("Créer"); // Bouton pour créer un utilisateur
         userTypeBox = new JComboBox<>(new String[]{"ADMIN", "DEVELOPER", "USER"}); // Liste déroulante pour le rôle utilisateur
@@ -109,351 +124,145 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         userPanel.add(new JLabel("Email :")); // Étiquette pour l'email
         userPanel.add(userEmailField); // Champ de texte pour l'email
         userPanel.add(createUserButton); // Ajout du bouton de création d'utilisateur
-        // Liste de sélection des utilisateurs en haut
+
+        // Liste de sélection des utilisateurs EN HAUT
         userList = new JList<>(allUsers.toArray(new User[0])); // Liste des utilisateurs qui permet de sélectionner un utilisateur
         affichageUtilisateurs = new JScrollPane(userList); // Affichage qui permet le défilement
 
+        // Boutons d'export PDF EN BAS
+        exportPDFButton = new JButton("Exporter le ticket en PDF"); // Bouton pour exporter un ticket en PDF
+        exportPanel = new JPanel(); // Panneau pour le bouton d'export
+        exportPanel.add(exportPDFButton); // Ajout du bouton d'export au panneau
+
         // Ajout des panneaux à la fenêtre principale
-        affichageTickets.setBorder(BorderFactory.createTitledBorder("Tickets")); // Bordure avec titre pour la liste des tickets
+        ticketPanel.setBorder(BorderFactory.createTitledBorder("Tickets")); // Bordure avec titre pour la liste des tickets
         formPanel.setBorder(BorderFactory.createTitledBorder("Créer / Modifier un Ticket")); // Bordure avec titre pour le formulaire
         affichageUtilisateurs.setBorder(BorderFactory.createTitledBorder("Sélectionner l'utilisateur :")); // Bordure avec titre pour la liste des utilisateurs
         userPanel.setBorder(BorderFactory.createTitledBorder("Créer un nouvel utilisateur")); // Bordure avec titre pour le panneau des utilisateurs
-        add(affichageTickets, BorderLayout.WEST); // Ajouter la liste des tickets à gauche
+        add(ticketPanel, BorderLayout.WEST); // Ajouter la liste des tickets à gauche
         add(formPanel, BorderLayout.CENTER); // Ajouter le formulaire au centre
         add(affichageUtilisateurs, BorderLayout.NORTH); // Ajouter la liste des utilisateurs en haut
         add(userPanel, BorderLayout.EAST); // Ajouter la liste des utilisateurs à droite
-    }
+        add(exportPanel, BorderLayout.SOUTH); // Ajouter le panneau d'export en bas
+    }}
 
-    // Affiche un ticket simple
-    public void displayTicket(Ticket ticket) {
-        if (ticket == null) {
-            System.out.println("Erreur: Le ticket est null.");
-            return;
-        }
+    /*// Méthode pour initialiser les écouteurs d'événements
+    private void initListeners() {
+        // Événement pour le bouton "Créer" de ticket
+        saveButton.addActionListener(e -> creerTicket());
 
-        System.out.println("\n" + formatTicketInfo(ticket));
-    }
+        // Événement pour le bouton "Modifier" de ticket
+        //createButton.addActionListener(e -> modifierTicket());
 
-    // Affiche un ticket avec ses commentaires (version améliorée)
-    public void displayTicketWithComments(Ticket ticket, List<String> comments) {
-        if (ticket == null) {
-            System.out.println("Erreur: Le ticket est null.");
-            return;
-        }
+        // Événement pour le bouton "Exporter en PDF"
+        //exportPDFButton.addActionListener(e -> exporterTicketPDF());
 
-        System.out.println("\n╔════════════════════════════════════════════════════════╗");
-        System.out.println("║              TICKET #" + ticket.getTicketID() + " - DÉTAILS COMPLETS              ║");
-        System.out.println("╚════════════════════════════════════════════════════════╝");
-        System.out.println(formatTicketInfo(ticket));
-        
-        System.out.println("\n--- Commentaires ---");
-        displayCommentsList(comments);
-        
-        System.out.println("\nNote: Pour voir les images/videos, consultez les chemins indiques dans la description.");
-        System.out.println("════════════════════════════════════════════════════════\n");
-    }
+        // Événement pour le bouton "Créer" d'utilisateur
+        createUserButton.addActionListener(e -> creerUtilisateur());
 
-    // Affiche les détails complets d'un ticket
-    public void displayTicketDetails(Ticket ticket, List<String> comments, String additionalStatus) {
-        if (ticket == null) {
-            System.out.println("Erreur: Le ticket est null.");
-            return;
-        }
-
-        System.out.println("\n╔════════════════════════════════════════════════════════╗");
-        System.out.println("║          DÉTAILS COMPLETS DU TICKET #" + ticket.getTicketID() + "              ║");
-        System.out.println("╚════════════════════════════════════════════════════════╝");
-        
-        System.out.println(formatTicketInfo(ticket));
-        
-        if (additionalStatus != null && !additionalStatus.isEmpty()) {
-            System.out.println("\nStatut additionnel: " + additionalStatus);
-        }
-        
-        System.out.println("\n--- Commentaires ---");
-        displayCommentsList(comments);
-        System.out.println("\n════════════════════════════════════════════════════════\n");
-    }
-
-    // Affiche tous les tickets
-    public void displayAllTickets(List<Ticket> tickets) {
-        if (tickets == null || tickets.isEmpty()) {
-            System.out.println("\nAucun ticket à afficher.");
-            return;
-        }
-
-        System.out.println("\n╔════════════════════════════════════════════════════════╗");
-        System.out.println("║              LISTE DE TOUS LES TICKETS                 ║");
-        System.out.println("╚════════════════════════════════════════════════════════╝");
-        System.out.println("Total: " + tickets.size() + " ticket(s)\n");
-
-        for (Ticket ticket : tickets) {
-            System.out.println(formatTicketInfo(ticket));
-            System.out.println("────────────────────────────────────────────────────────");
-        }
-
-        ticketList.setListData(tickets.toArray(new Ticket[0]));
-    }
-
-    // Affiche les tickets filtrés par statut
-    public void displayTicketsByStatus(List<Ticket> tickets, String status) {
-        if (tickets == null || tickets.isEmpty()) {
-            System.out.println("\nAucun ticket avec le statut: " + status);
-            return;
-        }
-
-        System.out.println("\n╔════════════════════════════════════════════════════════╗");
-        System.out.println("║         TICKETS AVEC LE STATUT: " + status + "              ║");
-        System.out.println("╚════════════════════════════════════════════════════════╝");
-        System.out.println("Total: " + tickets.size() + " ticket(s)\n");
-
-        for (Ticket ticket : tickets) {
-            System.out.println(formatTicketInfo(ticket));
-            System.out.println("────────────────────────────────────────────────────────");
-        }
-    }
-
-    // Affiche les tickets filtrés par priorité
-    public void displayTicketsByPriority(List<Ticket> tickets, String priority) {
-        if (tickets == null || tickets.isEmpty()) {
-            System.out.println("\nAucun ticket avec la priorité: " + priority);
-            return;
-        }
-
-        System.out.println("\n╔════════════════════════════════════════════════════════╗");
-        System.out.println("║       TICKETS AVEC LA PRIORITÉ: " + priority + "           ║");
-        System.out.println("╚════════════════════════════════════════════════════════╝");
-        System.out.println("Total: " + tickets.size() + " ticket(s)\n");
-
-        for (Ticket ticket : tickets) {
-            System.out.println(formatTicketInfo(ticket));
-            System.out.println("────────────────────────────────────────────────────────");
-        }
-    }
-
-    // Affiche les tickets d'un utilisateur
-    public void displayTicketsByUser(List<Ticket> tickets, User user) {
-        if (user == null) {
-            System.out.println("Erreur: L'utilisateur est null.");
-            return;
-        }
-
-        if (tickets == null || tickets.isEmpty()) {
-            System.out.println("\nAucun ticket pour l'utilisateur: " + user.getName());
-            return;
-        }
-
-        System.out.println("\n╔════════════════════════════════════════════════════════╗");
-        System.out.println("║    TICKETS DE L'UTILISATEUR: " + user.getName() + "           ║");
-        System.out.println("╚════════════════════════════════════════════════════════╝");
-        System.out.println("Total: " + tickets.size() + " ticket(s)\n");
-
-        for (Ticket ticket : tickets) {
-            System.out.println(formatTicketInfo(ticket));
-            System.out.println("────────────────────────────────────────────────────────");
-        }
-    }
-
-    // Affiche les informations d'un utilisateur
-    public void displayUserInfo(User user) {
-        if (user == null) {
-            System.out.println("Erreur: L'utilisateur est null.");
-            return;
-        }
-
-        System.out.println("\n╔════════════════════════════════════════════════════════╗");
-        System.out.println("║              INFORMATIONS UTILISATEUR                  ║");
-        System.out.println("╚════════════════════════════════════════════════════════╝");
-        System.out.println("ID: " + user.getUserID());
-        System.out.println("Nom: " + user.getName());
-        System.out.println("Email: " + user.getEmail());
-        System.out.println("Rôle: " + user.getRole());
-        System.out.println("════════════════════════════════════════════════════════\n");
-    }
-
-    // Affiche une description avec détails complets
-    public void displayDescription(Description description) {
-        if (description == null) {
-            System.out.println("Erreur: La description est null.");
-            return;
-        }
-
-        System.out.println("\n╔════════════════════════════════════════════════════════╗");
-        System.out.println("║              DESCRIPTION DÉTAILLÉE                     ║");
-        System.out.println("╚════════════════════════════════════════════════════════╝");
-        
-        // Affichage du texte
-        System.out.println("\nContenu Textuel:");
-        if (description.hasContent()) {
-            System.out.println("─────────────────────────────────────────────────");
-            System.out.println(description.getTextContent());
-            System.out.println("─────────────────────────────────────────────────");
-        } else {
-            System.out.println("  (Aucun texte)");
-        }
-        
-        // Affichage des images
-        System.out.println("\nCaptures d'Ecran (" + description.getImagePaths().size() + "):");
-        if (description.hasImages()) {
-            int i = 1;
-            for (String path : description.getImagePaths()) {
-                System.out.println("  [Image " + i + "] " + path);
-                System.out.println("            -> Ouvrir avec visionneuse d'images");
-                i++;
-            }
-        } else {
-            System.out.println("  (Aucune image attachée)");
-        }
-        
-        // Affichage des vidéos
-        System.out.println("\nVideos de Demonstration (" + description.getVideoPaths().size() + "):");
-        if (description.hasVideos()) {
-            int i = 1;
-            for (String path : description.getVideoPaths()) {
-                System.out.println("  [Video " + i + "] " + path);
-                System.out.println("            -> Ouvrir avec lecteur video");
-                i++;
-            }
-        } else {
-            System.out.println("  (Aucune vidéo attachée)");
-        }
-        
-        // Métadonnées
-        System.out.println("\nMetadonnees:");
-        System.out.println("  Créé le: " + formatDate(description.getCreationDate()));
-        System.out.println("  Modifié le: " + formatDate(description.getLastModified()));
-        
-        System.out.println("\nNote: Dans une application web/GUI, les images et videos");
-        System.out.println("      s'afficheraient directement dans l'interface.");
-        System.out.println("════════════════════════════════════════════════════════\n");
-    }
-
-    // Affiche des statistiques
-    public void displayStatistics(int totalTickets, int openTickets, int closedTickets) {
-        System.out.println("\n╔════════════════════════════════════════════════════════╗");
-        System.out.println("║                  STATISTIQUES                          ║");
-        System.out.println("╚════════════════════════════════════════════════════════╝");
-        System.out.println("Total de tickets: " + totalTickets);
-        System.out.println("Tickets ouverts: " + openTickets);
-        System.out.println("Tickets fermés: " + closedTickets);
-        
-        if (totalTickets > 0) {
-            double openPercentage = (openTickets * 100.0) / totalTickets;
-            double closedPercentage = (closedTickets * 100.0) / totalTickets;
-            System.out.println("Pourcentage ouvert: " + String.format("%.2f", openPercentage) + "%");
-            System.out.println("Pourcentage fermé: " + String.format("%.2f", closedPercentage) + "%");
-        }
-        
-        System.out.println("════════════════════════════════════════════════════════\n");
-    }
-
-    // Exporte un ticket en PDF (simulation)
-    public boolean exportTicketToPDF(Ticket ticket, Description description, List<String> comments, String filePath) {
-        if (ticket == null || filePath == null || filePath.trim().isEmpty()) {
-            System.out.println("Erreur: Ticket ou chemin de fichier invalide.");
-            return false;
-        }
-
-        // Utiliser le dossier exports pour les PDFs
-        String fullPath = "media/exports/" + filePath;
-
-        System.out.println("\n╔════════════════════════════════════════════════════════╗");
-        System.out.println("║                   EXPORT PDF                           ║");
-        System.out.println("╚════════════════════════════════════════════════════════╝");
-        System.out.println("Fichier: " + fullPath);
-        System.out.println("\n--- Contenu du ticket ---");
-        System.out.println(formatTicketInfo(ticket));
-        
-        if (description != null) {
-            System.out.println("\n--- Description ---");
-            System.out.println(description.getContentSummary());
-            
-            if (description.hasImages()) {
-                System.out.println("\nImages incluses:");
-                for (String img : description.getImagePaths()) {
-                    System.out.println("  - " + img);
+        // Événement pour la sélection d'un ticket dans la liste
+        ticketList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                Ticket selectedTicket = ticketList.getSelectedValue();
+                if (selectedTicket != null) {
+                    remplirFormulaireTicket(selectedTicket);
+                    updateActionsPanel(selectedTicket);
                 }
             }
+        });
+        
+        // Événement pour le changement d'utilisateur connecté
+        userList.addListSelectionListener(e -> {
+            currentUser = (User) userList.getSelectedValue();
+            Ticket selectedTicket = ticketList.getSelectedValue();
+            updateActionsPanel(selectedTicket);
+        });
+        
+        // Événement pour le filtre par statut
+        filterStatusBox.addActionListener(e -> filtrerTickets());
+    }
+
+    // Méthode pour créer un ticket
+    private void creerTicket() {
+        try {
+            // Récupération des champs
+            String titre = titreField.getText().trim();
+            String description = descriptionArea.getText().trim();
+            String priorite = (String) prioriteBox.getSelectedItem();
             
-            if (description.hasVideos()) {
-                System.out.println("\nVideos referencees:");
-                for (String vid : description.getVideoPaths()) {
-                    System.out.println("  - " + vid);
-                }
+            // Vérifier qu'un utilisateur est sélectionné
+            User selectedUser = userList.getSelectedValue();
+            if (selectedUser == null) {
+                JOptionPane.showMessageDialog(this, "Veuillez sélectionner un utilisateur créateur du ticket !", 
+                    "Erreur de validation", JOptionPane.ERROR_MESSAGE);
+            return;
             }
-        }
-        
-        if (comments != null && !comments.isEmpty()) {
-            System.out.println("\n--- Commentaires ---");
-            System.out.println(formatComments(comments));
-        }
-        
-        System.out.println("\n════════════════════════════════════════════════════════");
-        System.out.println("[SIMULATION] Export PDF complete !");
-        System.out.println("Emplacement prevu: " + fullPath);
-        System.out.println("\nNOTE: L'export PDF reel sera implemente dans la partie");
-        System.out.println("      avec interface graphique (GUI) en utilisant une");
-        System.out.println("      bibliotheque comme Apache PDFBox ou iText.");
-        System.out.println("      Le systeme est pret pour cette integration.");
-        System.out.println("════════════════════════════════════════════════════════\n");
-        
-        return true;
-    }
+            
+            // Création : créer un nouveau ticket
+            Ticket newTicket = ticketCreator.createTicket(titre, description, selectedUser, priorite);
 
-    // Formate les informations d'un ticket
-    public String formatTicketInfo(Ticket ticket) {
-        if (ticket == null) {
-            return "Ticket null";
-        }
-
-        StringBuilder info = new StringBuilder();
-        info.append("Ticket #").append(ticket.getTicketID()).append("\n");
-        info.append("Titre: ").append(ticket.getTitle()).append("\n");
-        info.append("Description: ").append(ticket.getDescription()).append("\n");
-        info.append("Statut: ").append(ticket.getStatus()).append("\n");
-        info.append("Priorité: ").append(ticket.getPriority()).append("\n");
-        info.append("Créé le: ").append(ticket.getCreationDate()).append("\n");
-        info.append("Mis à jour le: ").append(ticket.getUpdateDate()).append("\n");
-        info.append("Assigné à: ").append(ticket.getAssignedUserId() == 0 ? "Non assigné" : "User ID " + ticket.getAssignedUserId());
-        
-        return info.toString();
-    }
-
-    // Formate une date
-    public String formatDate(Date date) {
-        if (date == null) {
-            return "Date inconnue";
-        }
-        return dateFormat.format(date);
-    }
-
-    // Formate une liste de commentaires
-    public String formatComments(List<String> comments) {
-        if (comments == null || comments.isEmpty()) {
-            return "Aucun commentaire";
-        }
-
-        StringBuilder formatted = new StringBuilder();
-        for (int i = 0; i < comments.size(); i++) {
-            formatted.append("[").append(i + 1).append("] ").append(comments.get(i)).append("\n");
-        }
-        return formatted.toString();
-    }
-
-    // Méthode privée pour afficher une liste de commentaires
-    private void displayCommentsList(List<String> comments) {
-        if (comments == null || comments.isEmpty()) {
-            System.out.println("Aucun commentaire");
-        } else {
-            for (int i = 0; i < comments.size(); i++) {
-                System.out.println("[" + (i + 1) + "] " + comments.get(i));
+            if (newTicket != null) {
+                JOptionPane.showMessageDialog(this, 
+                    "Ticket #" + newTicket.getTicketID() + " créé avec succès !", "Succès", 
+                    JOptionPane.INFORMATION_MESSAGE);
+                
+                // Rafraîchir la liste des tickets
+                rafraichirListeTickets();
+                
+                // Vider le formulaire
+                viderFormulaireTicket();
             }
+            else {
+                JOptionPane.showMessageDialog(this, 
+                    "Erreur lors de la création du ticket.", "Erreur", JOptionPane.ERROR_MESSAGE);
+            }
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, 
+                "Erreur lors de la création/modification du ticket : " + ex.getMessage(), 
+                "Erreur", 
+                JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    //Getters
-    public TicketManager getTicketManager() {
-        return ticketManager;
+    // Méthode pour créer un utilisateur
+    private void creerUtilisateur() {
+        try {
+            // Récupérer les valeurs des champs
+            String nom = userNameField.getText().trim();
+            String email = userEmailField.getText().trim();
+            String role = (String) userTypeBox.getSelectedItem();
+
+            // Créer l'utilisateur avec UserCreator (qui fait sa propre validation)
+            User newUser = userCreator.createUser(nom, email, role);
+
+            if (newUser == null) {
+                // La création a échoué.
+                JOptionPane.showMessageDialog(this, 
+                    "Erreur lors de la création de l'utilisateur .", "Erreur de validation", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Ajouter à la liste des utilisateurs
+            allUsers.add(newUser);
+            
+            // Rafraîchir la liste
+            rafraichirListeUtilisateurs();
+            
+            // Vider les champs
+            userNameField.setText("");
+            userEmailField.setText("");
+            userTypeBox.setSelectedIndex(0);
+            
+            JOptionPane.showMessageDialog(this, 
+                "Utilisateur créé avec succès !\nNom : " + newUser.getName() + "\nID : " + newUser.getUserID(), 
+                "Succès", 
+                JOptionPane.INFORMATION_MESSAGE);
+                
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erreur lors de la création de l'utilisateur : " + ex.getMessage(), 
+            "Erreur", JOptionPane.ERROR_MESSAGE);
+        }
     }
-}
+}*/
 
