@@ -282,8 +282,6 @@ public class TicketManager {
             System.out.println("Erreur: Ticket #" + ticketID + " introuvable.");
             return false;
         }
-
-        List<String> comments = commentManager.getComments(ticket);
         return true;
     }
 
