@@ -78,6 +78,8 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         ticketList = new JList<>(); // Liste des tickets qui permet de sélectionner un ticket
         ticketList.setListData(ticketManager.getAllTickets().toArray(new Ticket[0])); // Charger les tickets existants sous format JList
         filterStatusBox = new JComboBox<>(statusManager.getValidStatuses().toArray(new String[0])); // Liste déroulante pour filtrer par statut
+        filterStatusBox.insertItemAt("TOUS", 0); // Option pour afficher tous les statuts
+        filterStatusBox.setSelectedIndex(0); // Valeur par défaut = TOUS
         affichageTickets = new JScrollPane(ticketList); // Affichage qui permet le défilement
         ticketPanel = new JPanel(new BorderLayout()); // Panneau pour la liste des tickets
         ticketPanel.add(affichageTickets, BorderLayout.CENTER); // Ajouter l'affichage des tickets au panneau des tickets
@@ -91,9 +93,11 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         statutBox = new JComboBox<>(statusManager.getValidStatuses().toArray(new String[0])); // Liste déroulante pour le statut
         prioriteBox = new JComboBox<>(priorityManager.getValidPriorities().toArray(new String[0])); // Liste déroulante pour la priorité
         assignatedUserBox = new JComboBox<>(allUsers.toArray(new User[0])); // Liste déroulante pour l'utilisateur assigné
+        assignatedUserBox.insertItemAt(null, 0); // Option pour ne pas assigner d'utilisateur
+        assignatedUserBox.setSelectedIndex(0); // Valeur par défaut = null
         saveButton = new JButton("Modifier ticket"); // Bouton pour modifier un ticket
         createButton = new JButton("Créer ticket"); // Bouton pour créer un ticket
-        desassignButton = new JButton("Désassigner l'utilisateur"); // Bouton pour désassigner un utilisateur d'un ticket
+        desassignButton = new JButton("Désassigner le ticket"); // Bouton pour désassigner un utilisateur d'un ticket
         exportPDFButton = new JButton("Exporter le ticket en PDF"); // Bouton pour exporter un ticket en PDF
         // Panneau de creation/modification
         formPanel = new JPanel(new GridLayout(8, 1)); // Panneau de formulaire pour créer/modifier un ticket
@@ -177,19 +181,14 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
             currentUser = (User) userList.getSelectedValue();
             Ticket selectedTicket = ticketList.getSelectedValue();
         });
-        
+
         // Événement pour le filtre par statut
-        //filterStatusBox.addActionListener(e -> filtrerTickets());
+        filterStatusBox.addActionListener(e -> filtrerTickets());
     }
 
     // Méthode pour rafraîchir la liste des tickets affichés
     private void rafraichirListeTickets() {
         ticketList.setListData(ticketManager.getAllTickets().toArray(new Ticket[0])); // Met à jour la liste des tickets affichés
-    }
-
-    // Méthode pour rafraîchir la liste des utilisateurs affichés
-    private void rafraichirListeUtilisateurs() {
-        userList.setListData(allUsers.toArray(new User[0])); // Met à jour la liste des utilisateurs affichés
     }
 
     // Méthode pour vider le formulaire de ticket
@@ -233,6 +232,11 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
                 if (utilisateurAssigne != null) {
                     ticketManager.assignTicket(newTicket.getTicketID(), utilisateurAssigne, selectedUser);
                 }
+                else {
+                    // Avertir que aucun utilisateur n'a été assigné
+                    JOptionPane.showMessageDialog(this, "Vous n'avez pas assigné d'utilisateur au ticket.", 
+                    "Assignation", JOptionPane.INFORMATION_MESSAGE);
+                }
 
                 // Afficher un message de succès de création
                 JOptionPane.showMessageDialog(this, 
@@ -246,16 +250,44 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
                 viderFormulaireTicket();
             }
             else {
+                // La création a échoué, afficher un message d'erreur
                 JOptionPane.showMessageDialog(this, 
                     "Erreur lors de la création du ticket.", "Erreur", JOptionPane.ERROR_MESSAGE);
             }
 
         } catch (Exception ex) {
+            // Afficher un message d'erreur en cas d'exception d'exécution
             JOptionPane.showMessageDialog(this, 
                 "Erreur lors de la création/modification du ticket : " + ex.getMessage(), 
                 "Erreur", 
                 JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    // Méthode pour filtrer les tickets par statut
+    private void filtrerTickets() {
+        String statutFiltre = (String) filterStatusBox.getSelectedItem(); // Récupérer le statut sélectionné
+        // Si le filtre est "TOUS", afficher tous les tickets
+        if (statutFiltre.equals("TOUS")) {
+            ticketList.setListData(ticketManager.getAllTickets().toArray(new Ticket[0])); // Afficher tous les tickets
+            return;
+        }
+        ticketList.setListData(ticketManager.getTicketsByStatus(statutFiltre).toArray(new Ticket[0])); // Met à jour la liste des tickets affichés selon le filtre
+    }
+
+    // Méthode pour rafraîchir la liste des utilisateurs affichés
+    private void rafraichirListeUtilisateurs() {
+        userList.setListData(allUsers.toArray(new User[0])); // Met à jour la liste des utilisateurs affichés
+        assignatedUserBox.setModel(new DefaultComboBoxModel<>(allUsers.toArray(new User[0]))); // Met à jour la liste des utilisateurs assignables
+        assignatedUserBox.insertItemAt(null, 0); // Option pour ne pas assigner d'utilisateur
+        assignatedUserBox.setSelectedIndex(0); // Valeur par défaut = null
+    }
+
+    // Méthode pour vider le formulaire d'utilisateur
+    private void viderFormulaireUtilisateur() {
+        userNameField.setText(""); // Vider le champ du nom d'utilisateur
+        userEmailField.setText(""); // Vider le champ de l'email
+        userTypeBox.setSelectedIndex(0); // Réinitialiser le rôle utilisateur
     }
 
     // Méthode pour créer un utilisateur
@@ -270,29 +302,29 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
             User newUser = userCreator.createUser(nom, email, role);
 
             if (newUser == null) {
-                // La création a échoué.
+                // La création a échoué, afficher un message d'erreur
                 JOptionPane.showMessageDialog(this, 
                     "Erreur lors de la création de l'utilisateur .", "Erreur de validation", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
-            // Ajouter à la liste des utilisateurs
+
+            // Si la création a réussi, ajouter à la liste des utilisateurs
             allUsers.add(newUser);
             
-            // Rafraîchir la liste
+            // Rafraîchir la liste des utilisateurs
             rafraichirListeUtilisateurs();
             
-            // Vider les champs
-            userNameField.setText("");
-            userEmailField.setText("");
-            userTypeBox.setSelectedIndex(0);
-            
+            // Vider les champs de création d'utilisateur
+            viderFormulaireUtilisateur();
+
+            // Afficher un message de succès
             JOptionPane.showMessageDialog(this, 
                 "Utilisateur créé avec succès !\nNom : " + newUser.getName() + "\nID : " + newUser.getUserID(), 
                 "Succès", 
                 JOptionPane.INFORMATION_MESSAGE);
                 
         } catch (Exception ex) {
+            // Afficher un message d'erreur en cas d'exception d'exécution
             JOptionPane.showMessageDialog(this, "Erreur lors de la création de l'utilisateur : " + ex.getMessage(), 
             "Erreur", JOptionPane.ERROR_MESSAGE);
         }
