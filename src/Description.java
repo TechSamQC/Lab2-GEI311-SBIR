@@ -6,16 +6,12 @@ public class Description {
     private String textContent;
     private List<String> imagePaths;
     private List<String> videoPaths;
-    private Date creationDate;
-    private Date lastModified;
 
     // Constructeur par défaut
     public Description() {
         this.textContent = "";
         this.imagePaths = new ArrayList<>();
         this.videoPaths = new ArrayList<>();
-        this.creationDate = new Date();
-        this.lastModified = new Date();
     }
 
     // Constructeur avec texte
@@ -23,8 +19,6 @@ public class Description {
         this.textContent = textContent != null ? textContent : "";
         this.imagePaths = new ArrayList<>();
         this.videoPaths = new ArrayList<>();
-        this.creationDate = new Date();
-        this.lastModified = new Date();
     }
 
     // Getters
@@ -40,32 +34,21 @@ public class Description {
         return new ArrayList<>(videoPaths);
     }
 
-    public Date getCreationDate() {
-        return creationDate;
-    }
-
-    public Date getLastModified() {
-        return lastModified;
-    }
-
     // Setters
     public void setTextContent(String textContent) {
         this.textContent = textContent != null ? textContent : "";
-        updateLastModified();
     }
 
     // Méthodes pour gérer les images
     public void addImagePath(String path) {
         if (path != null && !path.trim().isEmpty()) {
             imagePaths.add(path);
-            updateLastModified();
         }
     }
 
     public boolean removeImagePath(String path) {
         boolean removed = imagePaths.remove(path);
         if (removed) {
-            updateLastModified();
         }
         return removed;
     }
@@ -73,7 +56,6 @@ public class Description {
     public void clearImages() {
         if (!imagePaths.isEmpty()) {
             imagePaths.clear();
-            updateLastModified();
         }
     }
 
@@ -81,14 +63,12 @@ public class Description {
     public void addVideoPath(String path) {
         if (path != null && !path.trim().isEmpty()) {
             videoPaths.add(path);
-            updateLastModified();
         }
     }
 
     public boolean removeVideoPath(String path) {
         boolean removed = videoPaths.remove(path);
         if (removed) {
-            updateLastModified();
         }
         return removed;
     }
@@ -96,13 +76,7 @@ public class Description {
     public void clearVideos() {
         if (!videoPaths.isEmpty()) {
             videoPaths.clear();
-            updateLastModified();
         }
-    }
-
-    // Met à jour la date de dernière modification
-    public void updateLastModified() {
-        this.lastModified = new Date();
     }
 
     // Vérifications
@@ -139,13 +113,7 @@ public class Description {
 
     @Override
     public String toString() {
-        return "Description{" +
-                "textContent='" + (hasContent() ? textContent.substring(0, Math.min(50, textContent.length())) + "..." : "vide") + '\'' +
-                ", images=" + imagePaths.size() +
-                ", videos=" + videoPaths.size() +
-                ", creationDate=" + creationDate +
-                ", lastModified=" + lastModified +
-                '}';
+        return "Description :" + textContent + ".";
     }
 }
 

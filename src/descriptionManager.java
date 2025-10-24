@@ -161,8 +161,6 @@ public class descriptionManager {
             "Aucun texte").append("\n");
         summary.append("Nombre d'images: ").append(description.getImagePaths().size()).append("\n");
         summary.append("Nombre de vidéos: ").append(description.getVideoPaths().size()).append("\n");
-        summary.append("Date de création: ").append(description.getCreationDate()).append("\n");
-        summary.append("Dernière modification: ").append(description.getLastModified()).append("\n");
         
         return summary.toString();
     }
