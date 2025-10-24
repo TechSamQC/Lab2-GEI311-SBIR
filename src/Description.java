@@ -112,7 +112,7 @@ public class Description {
 
     @Override
     public String toString() {
-        return "Description: " + textContent + ".";
+        return ": " + textContent + ".";
     }
 }
 
