@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class Description {
@@ -113,7 +112,7 @@ public class Description {
 
     @Override
     public String toString() {
-        return "Description :" + textContent + ".";
+        return "Description: " + textContent + ".";
     }
 }
 
