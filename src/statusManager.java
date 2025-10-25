@@ -99,6 +99,14 @@ public class statusManager {
             return true;
         }
 
+        if (requester.canAssignTickets()) {
+            // Les développeurs peuvent changer les statuts sauf terminer
+            if (newStatus.equalsIgnoreCase("TERMINÉ")) {
+                return false;
+            }
+            return true;
+        }
+
         // Les utilisateurs réguliers peuvent seulement mettre un ticket assigné en VALIDATION
         if (ticket.getAssignedUserId() == requester.getUserID() && 
             ticket.getStatus().equalsIgnoreCase("ASSIGNÉ") && 
