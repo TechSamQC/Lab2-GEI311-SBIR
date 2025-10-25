@@ -10,7 +10,7 @@ public class ticketValidator {
 
     // Constructeur avec valeurs par défaut
     public ticketValidator() {
-        this.minTitleLength = 5;
+        this.minTitleLength = 1;
         this.maxTitleLength = 200;
         this.validPriorities = Arrays.asList("BASSE", "MOYENNE", "HAUTE", "CRITIQUE");
     }
