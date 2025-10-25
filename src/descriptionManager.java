@@ -153,15 +153,11 @@ public class descriptionManager {
         }
 
         StringBuilder summary = new StringBuilder();
-        summary.append("\n--- Résumé de la description ---\n");
-        summary.append("Texte: ").append(description.hasContent() ? 
-            (description.getTextContent().length() > 100 ? 
-                description.getTextContent().substring(0, 100) + "..." : 
-                description.getTextContent()) : 
-            "Aucun texte").append("\n");
-        summary.append("Nombre d'images: ").append(description.getImagePaths().size()).append("\n");
-        summary.append("Nombre de vidéos: ").append(description.getVideoPaths().size()).append("\n");
-        
+        summary.append("--- Résumé de la description ---\n");
+        summary.append("Texte: ").append(description.getTextContent()).append("\n");
+        summary.append("Images: ").append(description.getImagePaths()).append("\n");
+        summary.append("Vidéos: ").append(description.getVideoPaths());
+
         return summary.toString();
     }
 
