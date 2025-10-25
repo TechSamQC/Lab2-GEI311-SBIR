@@ -26,6 +26,7 @@ public class UserCreator {
         // Validation avant création
         if (!validateBeforeCreation(userID, name, email, role)) {
             System.out.println("Erreur: Impossible de créer l'utilisateur avec les données fournies.");
+            nextUserID--; // Décrémenter l'ID si la création échoue
             return null;
         }
 
