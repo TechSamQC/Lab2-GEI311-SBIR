@@ -81,7 +81,7 @@ public class Ticket {
     // Méthode toString pour afficher les infos simples sur le ticket
     @Override
     public String toString() {
-        return "Ticket "+ ticketID + " (" + title + ").";
+        return "Ticket "+ ticketID + " [" + title + "] " + description.toString();
     }
 
     // Méthodes spécifiques au ticket
@@ -97,6 +97,7 @@ public class Ticket {
         ticket.updateDate = LocalDate.now().toString();
     }
 
+    // Vérifie si le ticket est assigné, retourne true si assigné, false sinon
     public boolean isAssigned() {
         return this.assignedUserId != 0;
     }

@@ -8,17 +8,15 @@ public class TicketManager {
     private commentManager commentManager;
     private AssignationManager assignationManager;
     private descriptionManager descriptionManager;
-    private Display display;
 
     // Constructeur
-    public TicketManager(Display display) {
+    public TicketManager() {
         this.allTickets = new ArrayList<>();
         this.statusManager = new statusManager();
         this.priorityManager = new PriorityManager();
         this.commentManager = new commentManager();
         this.assignationManager = new AssignationManager();
         this.descriptionManager = new descriptionManager();
-        this.display = display;
     }
 
     // ============= GESTION DES TICKETS =============
@@ -178,12 +176,13 @@ public class TicketManager {
             return false;
         }
 
-        // Si le ticket n'est pas terminé, le remettre à OUVERT
+        // Si le ticket n'est pas terminé, le remettre à OUVERT et désassigner
         if (!ticket.getStatus().equals("TERMINÉ")) {
             statusManager.updateStatus(ticket, "OUVERT", requestedBy);
+            return assignationManager.unassignTicket(ticket, requestedBy);
         }
 
-        return assignationManager.unassignTicket(ticket, requestedBy);
+        return false; // Rien à faire si le ticket est déjà terminé
     }
 
     // Ajoute un commentaire à un ticket
@@ -267,14 +266,24 @@ public class TicketManager {
             return false;
         }
 
+        if (ticket.isAssigned()) {
+            unassignTicket(ticketID, user);
+        }
         if (statusManager.updateStatus(ticket, "TERMINÉ", user)) {
-            if (ticket.isAssigned()) {
-                unassignTicket(ticketID, user);
-            }
             return true;
         }
         
         return false;
+    }
+
+    // Exporte un ticket en PDF
+    public boolean exportTicketToPDF(int ticketID, String filePath) {
+        Ticket ticket = getTicket(ticketID);
+        if (ticket == null) {
+            System.out.println("Erreur: Ticket #" + ticketID + " introuvable.");
+            return false;
+        }
+        return true;
     }
 
     // ============= MÉTHODES UTILITAIRES =============
@@ -332,10 +341,6 @@ public class TicketManager {
 
     public descriptionManager getDescriptionManager() {
         return descriptionManager;
-    }
-
-    public Display getDisplay() {
-        return display;
     }
 }
 
