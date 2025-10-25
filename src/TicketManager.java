@@ -276,14 +276,287 @@ public class TicketManager {
         return false;
     }
 
-    // Exporte un ticket en PDF
+    /**
+     * Exporte un ticket en PDF avec toutes ses informations
+     * @param ticketID L'ID du ticket à exporter
+     * @param filePath Le chemin du fichier PDF à créer
+     * @return true si l'export a réussi, false sinon
+     */
     public boolean exportTicketToPDF(int ticketID, String filePath) {
         Ticket ticket = getTicket(ticketID);
         if (ticket == null) {
             System.out.println("Erreur: Ticket #" + ticketID + " introuvable.");
             return false;
         }
-        return true;
+
+        try {
+            // Vérifier si iText est disponible
+            Class.forName("com.itextpdf.kernel.pdf.PdfWriter");
+            
+            // Si iText est disponible, l'utiliser pour générer le PDF
+            return exporterAvecIText(ticket, filePath);
+            
+        } catch (ClassNotFoundException e) {
+            // Si iText n'est pas disponible, utiliser une solution alternative simple
+            System.out.println("Avertissement: iText n'est pas disponible. Export en texte simple.");
+            return exporterEnTexteSimple(ticket, filePath);
+        }
+    }
+
+    /**
+     * Exporte le ticket en PDF en utilisant iText 7
+     * Cette méthode nécessite que les JAR d'iText soient dans le classpath
+     * Inclut les vraies images dans le PDF
+     */
+    private boolean exporterAvecIText(Ticket ticket, String filePath) {
+        try {
+            // Imports dynamiques pour éviter les erreurs si iText n'est pas présent
+            Class<?> pdfWriterClass = Class.forName("com.itextpdf.kernel.pdf.PdfWriter");
+            Class<?> pdfDocumentClass = Class.forName("com.itextpdf.kernel.pdf.PdfDocument");
+            Class<?> documentClass = Class.forName("com.itextpdf.layout.Document");
+            Class<?> paragraphClass = Class.forName("com.itextpdf.layout.element.Paragraph");
+            Class<?> imageClass = Class.forName("com.itextpdf.layout.element.Image");
+            Class<?> imageDataFactoryClass = Class.forName("com.itextpdf.io.image.ImageDataFactory");
+            
+            // Créer le PdfWriter
+            Object writer = pdfWriterClass.getConstructor(String.class).newInstance(filePath);
+            
+            // Créer le PdfDocument
+            Object pdfDoc = pdfDocumentClass.getConstructor(pdfWriterClass).newInstance(writer);
+            
+            // Créer le Document
+            Object document = documentClass.getConstructor(pdfDocumentClass).newInstance(pdfDoc);
+            
+            // === EN-TÊTE DU DOCUMENT ===
+            addParagraphToDocument(document, paragraphClass, documentClass, 
+                "═══════════════════════════════════════════════════════════════");
+            addParagraphToDocument(document, paragraphClass, documentClass, 
+                "TICKET #" + ticket.getTicketID() + " - " + ticket.getTitle());
+            addParagraphToDocument(document, paragraphClass, documentClass, 
+                "═══════════════════════════════════════════════════════════════");
+            addParagraphToDocument(document, paragraphClass, documentClass, "");
+            
+            // === INFORMATIONS DU TICKET ===
+            addParagraphToDocument(document, paragraphClass, documentClass, 
+                "📋 INFORMATIONS GÉNÉRALES");
+            addParagraphToDocument(document, paragraphClass, documentClass, 
+                "   Statut : " + ticket.getStatus());
+            addParagraphToDocument(document, paragraphClass, documentClass, 
+                "   Priorité : " + ticket.getPriority());
+            addParagraphToDocument(document, paragraphClass, documentClass, 
+                "   Date de création : " + ticket.getCreationDate());
+            addParagraphToDocument(document, paragraphClass, documentClass, 
+                "   Dernière mise à jour : " + ticket.getUpdateDate());
+            addParagraphToDocument(document, paragraphClass, documentClass, "");
+            
+            // === DESCRIPTION ===
+            addParagraphToDocument(document, paragraphClass, documentClass, 
+                "───────────────────────────────────────────────────────────────");
+            addParagraphToDocument(document, paragraphClass, documentClass, 
+                "📝 DESCRIPTION");
+            addParagraphToDocument(document, paragraphClass, documentClass, 
+                "───────────────────────────────────────────────────────────────");
+            String description = ticket.getDescription().getTextContent();
+            if (description != null && !description.trim().isEmpty()) {
+                addParagraphToDocument(document, paragraphClass, documentClass, description);
+            } else {
+                addParagraphToDocument(document, paragraphClass, documentClass, 
+                    "   (Aucune description)");
+            }
+            addParagraphToDocument(document, paragraphClass, documentClass, "");
+            
+            // === IMAGES ===
+            if (ticket.getDescription().hasImages()) {
+                addParagraphToDocument(document, paragraphClass, documentClass, 
+                    "───────────────────────────────────────────────────────────────");
+                addParagraphToDocument(document, paragraphClass, documentClass, 
+                    "🖼️  IMAGES (" + ticket.getDescription().getImagePaths().size() + ")");
+                addParagraphToDocument(document, paragraphClass, documentClass, 
+                    "───────────────────────────────────────────────────────────────");
+                
+                int imageNumber = 1;
+                for (String imagePath : ticket.getDescription().getImagePaths()) {
+                    try {
+                        // Vérifier si le fichier existe
+                        java.io.File imageFile = new java.io.File(imagePath);
+                        if (imageFile.exists()) {
+                            // Ajouter le nom de l'image
+                            addParagraphToDocument(document, paragraphClass, documentClass, 
+                                "\n   Image " + imageNumber + " : " + imageFile.getName());
+                            
+                            // Charger et ajouter l'image au PDF
+                            Object imageData = imageDataFactoryClass.getMethod("create", String.class)
+                                .invoke(null, imagePath);
+                            Object pdfImage = imageClass.getConstructor(
+                                Class.forName("com.itextpdf.io.image.ImageData"))
+                                .newInstance(imageData);
+                            
+                            // Redimensionner l'image si nécessaire (largeur max 400 points)
+                            imageClass.getMethod("setAutoScale", boolean.class).invoke(pdfImage, true);
+                            imageClass.getMethod("scaleToFit", float.class, float.class)
+                                .invoke(pdfImage, 400f, 400f);
+                            
+                            // Ajouter l'image au document
+                            documentClass.getMethod("add", Class.forName("com.itextpdf.layout.element.IBlockElement"))
+                                .invoke(document, pdfImage);
+                            
+                            imageNumber++;
+                        } else {
+                            addParagraphToDocument(document, paragraphClass, documentClass, 
+                                "   Image " + imageNumber + " : " + imagePath + " (fichier introuvable)");
+                            imageNumber++;
+                        }
+                    } catch (Exception imgEx) {
+                        System.out.println("Impossible d'ajouter l'image au PDF : " + imagePath);
+                        addParagraphToDocument(document, paragraphClass, documentClass, 
+                            "   Image " + imageNumber + " : " + imagePath + " (erreur de chargement)");
+                        imageNumber++;
+                    }
+                }
+                addParagraphToDocument(document, paragraphClass, documentClass, "");
+            }
+            
+            // === VIDÉOS ===
+            if (ticket.getDescription().hasVideos()) {
+                addParagraphToDocument(document, paragraphClass, documentClass, 
+                    "───────────────────────────────────────────────────────────────");
+                addParagraphToDocument(document, paragraphClass, documentClass, 
+                    "🎬 VIDÉOS (" + ticket.getDescription().getVideoPaths().size() + ")");
+                addParagraphToDocument(document, paragraphClass, documentClass, 
+                    "───────────────────────────────────────────────────────────────");
+                
+                int videoNumber = 1;
+                for (String videoPath : ticket.getDescription().getVideoPaths()) {
+                    java.io.File videoFile = new java.io.File(videoPath);
+                    String status = videoFile.exists() ? "" : " (fichier introuvable)";
+                    addParagraphToDocument(document, paragraphClass, documentClass, 
+                        "   " + videoNumber + ". " + videoFile.getName() + status);
+                    addParagraphToDocument(document, paragraphClass, documentClass, 
+                        "      Chemin : " + videoPath);
+                    videoNumber++;
+                }
+                addParagraphToDocument(document, paragraphClass, documentClass, "");
+            }
+            
+            // === COMMENTAIRES ===
+            if (!ticket.getComments().isEmpty()) {
+                addParagraphToDocument(document, paragraphClass, documentClass, 
+                    "───────────────────────────────────────────────────────────────");
+                addParagraphToDocument(document, paragraphClass, documentClass, 
+                    "💬 COMMENTAIRES (" + ticket.getComments().size() + ")");
+                addParagraphToDocument(document, paragraphClass, documentClass, 
+                    "───────────────────────────────────────────────────────────────");
+                
+                int commentNumber = 1;
+                for (String comment : ticket.getComments()) {
+                    addParagraphToDocument(document, paragraphClass, documentClass, 
+                        "   " + commentNumber + ". " + comment);
+                    commentNumber++;
+                }
+                addParagraphToDocument(document, paragraphClass, documentClass, "");
+            }
+            
+            // === PIED DE PAGE ===
+            addParagraphToDocument(document, paragraphClass, documentClass, 
+                "═══════════════════════════════════════════════════════════════");
+            addParagraphToDocument(document, paragraphClass, documentClass, 
+                "Fin du ticket - Généré le " + java.time.LocalDate.now());
+            addParagraphToDocument(document, paragraphClass, documentClass, 
+                "═══════════════════════════════════════════════════════════════");
+            
+            // Fermer le document
+            documentClass.getMethod("close").invoke(document);
+            
+            System.out.println("✅ Ticket #" + ticket.getTicketID() + " exporté en PDF avec succès : " + filePath);
+            return true;
+            
+        } catch (Exception e) {
+            System.out.println("❌ Erreur lors de l'export PDF avec iText : " + e.getMessage());
+            e.printStackTrace();
+            System.out.println("Tentative d'export en format texte...");
+            return exporterEnTexteSimple(ticket, filePath);
+        }
+    }
+
+    /**
+     * Méthode auxiliaire pour ajouter un paragraphe au document iText
+     */
+    private void addParagraphToDocument(Object document, Class<?> paragraphClass, 
+                                       Class<?> documentClass, String text) throws Exception {
+        Object paragraph = paragraphClass.getConstructor(String.class).newInstance(text);
+        documentClass.getMethod("add", Class.forName("com.itextpdf.layout.element.IBlockElement"))
+            .invoke(document, paragraph);
+    }
+
+    /**
+     * Export en fichier texte simple si iText n'est pas disponible
+     * Crée un fichier .txt au lieu de .pdf
+     */
+    private boolean exporterEnTexteSimple(Ticket ticket, String filePath) {
+        try {
+            // Remplacer l'extension .pdf par .txt
+            String txtFilePath = filePath.replace(".pdf", ".txt");
+            
+            // Créer le contenu du fichier
+            StringBuilder content = new StringBuilder();
+            content.append("=".repeat(60)).append("\n");
+            content.append("TICKET #").append(ticket.getTicketID()).append("\n");
+            content.append("=".repeat(60)).append("\n\n");
+            
+            content.append("Titre : ").append(ticket.getTitle()).append("\n");
+            content.append("Statut : ").append(ticket.getStatus()).append("\n");
+            content.append("Priorité : ").append(ticket.getPriority()).append("\n");
+            content.append("Date de création : ").append(ticket.getCreationDate()).append("\n");
+            content.append("Dernière mise à jour : ").append(ticket.getUpdateDate()).append("\n");
+            
+            content.append("\n").append("-".repeat(60)).append("\n");
+            content.append("DESCRIPTION\n");
+            content.append("-".repeat(60)).append("\n");
+            content.append(ticket.getDescription().getTextContent()).append("\n");
+            
+            if (ticket.getDescription().hasImages()) {
+                content.append("\n").append("-".repeat(60)).append("\n");
+                content.append("IMAGES (").append(ticket.getDescription().getImagePaths().size()).append(")\n");
+                content.append("-".repeat(60)).append("\n");
+                for (String imagePath : ticket.getDescription().getImagePaths()) {
+                    content.append("  - ").append(imagePath).append("\n");
+                }
+            }
+            
+            if (ticket.getDescription().hasVideos()) {
+                content.append("\n").append("-".repeat(60)).append("\n");
+                content.append("VIDÉOS (").append(ticket.getDescription().getVideoPaths().size()).append(")\n");
+                content.append("-".repeat(60)).append("\n");
+                for (String videoPath : ticket.getDescription().getVideoPaths()) {
+                    content.append("  - ").append(videoPath).append("\n");
+                }
+            }
+            
+            if (!ticket.getComments().isEmpty()) {
+                content.append("\n").append("-".repeat(60)).append("\n");
+                content.append("COMMENTAIRES\n");
+                content.append("-".repeat(60)).append("\n");
+                for (String comment : ticket.getComments()) {
+                    content.append("  • ").append(comment).append("\n");
+                }
+            }
+            
+            content.append("\n").append("=".repeat(60)).append("\n");
+            content.append("Fin du ticket\n");
+            content.append("=".repeat(60)).append("\n");
+            
+            // Écrire dans le fichier
+            java.nio.file.Files.write(java.nio.file.Paths.get(txtFilePath), content.toString().getBytes());
+            
+            System.out.println("Ticket #" + ticket.getTicketID() + " exporté en TXT : " + txtFilePath);
+            System.out.println("Note: Pour l'export PDF, installez iText (voir INSTALLATION_ITEXT.md)");
+            return true;
+            
+        } catch (Exception e) {
+            System.out.println("Erreur lors de l'export en texte simple : " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
 
     // ============= MÉTHODES UTILITAIRES =============

@@ -1,9 +1,16 @@
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
 
 public class Display extends JFrame{ // Classe pour l'affichage des tickets et interface GUI
     // Variables d'instance
@@ -32,9 +39,12 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
     private JButton createUserButton;
     private JButton deleteUserButton;
     private JButton desassignButton;
+    private JButton addImageButton;
+    private JButton addVideoButton;
     private JPanel formPanel;
     private JPanel ticketPanel;
     private JPanel userPanel;
+    private JPanel mediaPanel;
     private JScrollPane affichageTickets;
     private JScrollPane affichageUtilisateurs;
 
@@ -110,14 +120,27 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         createButton = new JButton("Créer ticket"); // Bouton pour créer un ticket
         desassignButton = new JButton("Désassigner le ticket"); // Bouton pour désassigner un utilisateur d'un ticket
         exportPDFButton = new JButton("Exporter le ticket en PDF"); // Bouton pour exporter un ticket en PDF
+        addImageButton = new JButton("Ajouter Image"); // Bouton pour ajouter une image
+        addVideoButton = new JButton("Ajouter Vidéo"); // Bouton pour ajouter une vidéo
+        
+        // Panneau pour les médias (images/vidéos)
+        mediaPanel = new JPanel();
+        mediaPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+        mediaPanel.setBorder(BorderFactory.createTitledBorder("Images et Vidéos"));
+        
         // Panneau de creation/modification
-        formPanel = new JPanel(new GridLayout(10, 1)); // Panneau de formulaire pour créer/modifier un ticket
+        formPanel = new JPanel(new GridLayout(13, 1)); // Panneau de formulaire pour créer/modifier un ticket
         formPanel.add(new JLabel("Titre :")); // Étiquette pour le titre
         formPanel.add(titreField); // Ajout du champ de titre
         formPanel.add(new JLabel("Informations sur le ticket :")); // Étiquette pour les autres informations
         formPanel.add(new JScrollPane(otherInfoArea)); // Ajout de la zone de texte pour les autres informations
         formPanel.add(new JLabel("Description :")); // Étiquette pour la description
         formPanel.add(new JScrollPane(descriptionArea)); // Ajout de la zone de texte pour la description
+        
+        // Panneau de prévisualisation des médias (sans les boutons)
+        formPanel.add(new JLabel("Images et Vidéos :")); // Étiquette pour la section médias
+        formPanel.add(new JScrollPane(mediaPanel)); // Ajout du panneau de prévisualisation
+        
         formPanel.add(new JLabel("Commentaires :")); // Étiquette pour les commentaires courants
         formPanel.add(new JScrollPane(currentComments)); // Ajout de la zone de texte pour les commentaires courants
         formPanel.add(new JLabel("Ajouter un commentaire :")); // Étiquette pour les commentaires
@@ -128,6 +151,13 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         formPanel.add(prioriteBox); // Ajout de la liste déroulante pour la priorité
         formPanel.add(new JLabel("Utilisateur assigné :")); // Étiquette pour l'utilisateur assigné
         formPanel.add(assignatedUserBox); // Ajout de la liste déroulante pour l'utilisateur assigné
+        
+        // Panneau pour les boutons d'ajout de médias (déplacé en bas)
+        JPanel mediaBtnPanel = new JPanel(new GridLayout(1, 2, 5, 0));
+        mediaBtnPanel.add(addImageButton);
+        mediaBtnPanel.add(addVideoButton);
+        formPanel.add(mediaBtnPanel); // Ajout des boutons d'ajout de médias
+        
         formPanel.add(createButton); // Ajout du bouton de création de ticket
         formPanel.add(saveButton); // Ajout du bouton de modification de ticket
         formPanel.add(desassignButton); // Ajout du bouton de désassignation de ticket
@@ -176,7 +206,7 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         saveButton.addActionListener(e -> modifierTicket());
 
         // Événement pour le bouton "Exporter en PDF"
-        //exportPDFButton.addActionListener(e -> exporterTicketPDF());
+        exportPDFButton.addActionListener(e -> exporterTicketPDF());
 
         // Événement pour le bouton "Désassigner"
         desassignButton.addActionListener(e -> desassignerUtilisateur());
@@ -186,6 +216,12 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
 
         // Événement pour le bouton "Supprimer" d'utilisateur
         deleteUserButton.addActionListener(e -> supprimerUtilisateur());
+
+        // Événement pour le bouton "Ajouter Image"
+        addImageButton.addActionListener(e -> ajouterImage());
+
+        // Événement pour le bouton "Ajouter Vidéo"
+        addVideoButton.addActionListener(e -> ajouterVideo());
 
         // Événement pour la sélection d'un ticket dans la liste
         ticketList.addListSelectionListener(e -> {
@@ -230,6 +266,7 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         statutBox.setSelectedIndex(0); // Réinitialiser le statut
         prioriteBox.setSelectedIndex(0); // Réinitialiser la priorité
         assignatedUserBox.setSelectedIndex(0); // Réinitialiser l'utilisateur assigné
+        viderMediaPanel(); // Vider le panneau des médias
     }
 
     // Méthode pour remplir le formulaire de ticket avec les données d'un ticket sélectionné
@@ -257,6 +294,9 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         // Récupérer et afficher les commentaires existants
         List<String> comments = commManager.getComments(selectedTicket);
         currentComments.setText(String.join("\n", comments));
+        
+        // Rafraîchir l'affichage des médias (images et vidéos)
+        rafraichirMediaPanel();
     }
 
     // Méthode pour créer un ticket
@@ -285,7 +325,7 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
                 if (utilisateurAssigne != null && currentUser.canAssignTickets()) {
                     ticketManager.assignTicket(newTicket.getTicketID(), utilisateurAssigne, currentUser);
                     // Si un statut autre que "ASSIGNÉ" est sélectionné, avertir l'utilisateur qu'il sera ignoré
-                    if (statutBox.getSelectedItem() != "ASSIGNÉ") {
+                    if (!"ASSIGNÉ".equals(statutBox.getSelectedItem())) {
                         JOptionPane.showMessageDialog(this, 
                             "Le statut initial d'un nouveau ticket avec utilisateur assigné est toujours 'ASSIGNÉ'. Le statut sélectionné sera ignoré.", 
                             "Information", JOptionPane.INFORMATION_MESSAGE);
@@ -303,7 +343,7 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
                 }
                 else {
                     // Si un statut autre que "OUVERT" est sélectionné, avertir l'utilisateur qu'il sera ignoré
-                    if (statutBox.getSelectedItem() != "OUVERT") {
+                    if (!"OUVERT".equals(statutBox.getSelectedItem())) {
                         JOptionPane.showMessageDialog(this, 
                             "Le statut initial d'un nouveau ticket est toujours 'OUVERT'. Le statut sélectionné sera ignoré.", 
                             "Information", JOptionPane.INFORMATION_MESSAGE);
@@ -392,7 +432,7 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
             boolean success; // Variable pour suivre le succès des opérations
 
             // Mettre à jour l'utilisateur assigné
-            if (utilisateurAssigne.getUserID() != selectedTicket.getAssignedUserId()) {
+            if (utilisateurAssigne != null && utilisateurAssigne.getUserID() != selectedTicket.getAssignedUserId()) {
                 if (!currentUser.canAssignTickets()) {
                     // Avertir que l'utilisateur n'a pas les droits pour assigner des tickets
                     JOptionPane.showMessageDialog(this, 
@@ -415,8 +455,8 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
                         "L'utilisateur assigné a été modifié. Le statut du ticket est automatiquement mis à jour à 'ASSIGNÉ'.", 
                         "Information", JOptionPane.INFORMATION_MESSAGE);
                 }
-            } else if (statut != selectedTicket.getStatus()) { // Mettre à jour le statut seulement si l'utilisateur assigné n'a pas changé (un ticket assigné change automatiquement de statut).
-                if (statut == "TERMINÉ" && !currentUser.canCloseTickets()) {
+            } else if (!statut.equals(selectedTicket.getStatus())) { // Mettre à jour le statut seulement si l'utilisateur assigné n'a pas changé (un ticket assigné change automatiquement de statut).
+                if (statut.equals("TERMINÉ") && !currentUser.canCloseTickets()) {
                     // Avertir que l'utilisateur n'a pas les droits pour fermer le ticket
                     JOptionPane.showMessageDialog(this, 
                         "Vous n'avez pas les droits nécessaires pour fermer ce ticket.", 
@@ -461,7 +501,7 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
             }
 
             // Mettre à jour la priorité
-            if (priorite != selectedTicket.getPriority()) {
+            if (!priorite.equals(selectedTicket.getPriority())) {
                 // Mettre à jour la priorité via le ticketManager
                 success = ticketManager.updateTicketPriority(selectedTicket.getTicketID(), priorite, currentUser);
                 if (!success) {
@@ -617,42 +657,346 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         try {
             // Si aucun utilisateur n'est sélectionné, afficher un message d'erreur
             if (currentUser == null) {
-                JOptionPane.showMessageDialog(this, "Veuillez sélectionner un utilisateur à supprimer !", 
-                    "Erreur", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, 
+                    "Aucun utilisateur sélectionné\n\n" +
+                    "Veuillez d'abord sélectionner un utilisateur dans la liste en haut,\n" +
+                    "puis cliquer sur \"Supprimer l'utilisateur\".", 
+                    "Sélection requise", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             
             if (currentUser.getUserID() == 0) {
                 // Empêcher la suppression de l'utilisateur admin par défaut
                 JOptionPane.showMessageDialog(this, 
-                    "L'utilisateur administrateur par défaut ne peut pas être supprimé.", "Erreur", 
-                    JOptionPane.ERROR_MESSAGE);
+                    " Suppression interdite\n\n" +
+                    "L'utilisateur administrateur système (SYS ADMIN) ne peut pas être supprimé.\n", 
+                    "Utilisateur protégé", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
+            // Sauvegarder les informations avant suppression
+            String userName = currentUser.getName();
+            int userID = currentUser.getUserID();
+            int ticketCount = ticketManager.getTicketsByUser(currentUser).size();
+
             // Désassigner l'utilisateur de tous les tickets qui lui sont assignés
-            if (!ticketManager.getTicketsByUser(currentUser).isEmpty()) {
+            if (ticketCount > 0) {
                 for (Ticket t : ticketManager.getTicketsByUser(currentUser)) {
                     ticketManager.unassignTicket(t.getTicketID(), allUsers.get(0));
                 }
                 rafraichirListeTickets(); // Rafraîchir la liste des tickets pour refléter les changements
             }
+            
             // Supprimer l'utilisateur de la liste
             allUsers.remove(currentUser);
+            currentUser = null; // Réinitialiser currentUser après suppression
 
             // Rafraîchir la liste des utilisateurs
             rafraichirListeUtilisateurs();
 
             // Afficher un message de succès
-            JOptionPane.showMessageDialog(this, 
-                "Utilisateur supprimé avec succès !\nNom : " + currentUser.getName() + "\nID : " + currentUser.getUserID(), 
-                "Succès", 
+            String message = " Utilisateur supprimé avec succès !\n\n" +
+                           "Nom : " + userName + "\n" +
+                           "ID : " + userID;
+            if (ticketCount > 0) {
+                message += "\n\n" + ticketCount + " ticket(s) ont été désassignés et remis à l'état OUVERT.";
+            }
+            JOptionPane.showMessageDialog(this, message, "Suppression réussie", 
                 JOptionPane.INFORMATION_MESSAGE);
 
         } catch (Exception ex) {
             // Afficher un message d'erreur en cas d'exception d'exécution
-            JOptionPane.showMessageDialog(this, "Erreur lors de la suppression de l'utilisateur : " + ex.getMessage(), 
-            "Erreur", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, 
+                "❌ Erreur lors de la suppression\n\n" +
+                "Une erreur inattendue s'est produite :\n" + ex.getMessage() + "\n\n" +
+                "Veuillez réessayer ou contacter le support technique.", 
+                "Erreur système", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
     }
+    // ************************************************************************************** //
+
+    // ************************ Méthodes de gestion des médias (images/vidéos) ************************ //
+    /**
+     * Méthode pour ajouter une image au ticket sélectionné
+     * Ouvre un dialogue de sélection de fichier, copie l'image dans le dossier media/images/
+     * et l'ajoute à la description du ticket
+     */
+    private void ajouterImage() {
+        // Vérifier qu'un ticket est sélectionné
+        if (selectedTicket == null) {
+            JOptionPane.showMessageDialog(this, 
+                "Veuillez sélectionner un ticket pour ajouter une image !", 
+                "Erreur", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Créer un sélecteur de fichiers avec filtre pour les images
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Sélectionner une image");
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(
+            "Images (JPG, JPEG, PNG, GIF)", "jpg", "jpeg", "png", "gif");
+        fileChooser.setFileFilter(filter);
+
+        // Afficher le dialogue et vérifier si l'utilisateur a sélectionné un fichier
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            
+            // Copier le fichier vers le dossier media/images/
+            String newPath = copierFichierVersMedia(selectedFile, "images");
+            
+            if (newPath != null) {
+                // Ajouter l'image à la description du ticket
+                boolean success = ticketManager.addImageToTicketDescription(
+                    selectedTicket.getTicketID(), newPath);
+                
+                if (success) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Image ajoutée avec succès !", 
+                        "Succès", JOptionPane.INFORMATION_MESSAGE);
+                    
+                    // Rafraîchir l'affichage des médias
+                    rafraichirMediaPanel();
+                } else {
+                    JOptionPane.showMessageDialog(this, 
+                        "Erreur lors de l'ajout de l'image à la description.", 
+                        "Erreur", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+    }
+
+    /**
+     * Méthode pour ajouter une vidéo au ticket sélectionné
+     * Ouvre un dialogue de sélection de fichier, copie la vidéo dans le dossier media/videos/
+     * et l'ajoute à la description du ticket
+     */
+    private void ajouterVideo() {
+        // Vérifier qu'un ticket est sélectionné
+        if (selectedTicket == null) {
+            JOptionPane.showMessageDialog(this, 
+                "Veuillez sélectionner un ticket pour ajouter une vidéo !", 
+                "Erreur", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Créer un sélecteur de fichiers avec filtre pour les vidéos
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Sélectionner une vidéo");
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(
+            "Vidéos (MP4, AVI, MOV)", "mp4", "avi", "mov");
+        fileChooser.setFileFilter(filter);
+
+        // Afficher le dialogue et vérifier si l'utilisateur a sélectionné un fichier
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            
+            // Copier le fichier vers le dossier media/videos/
+            String newPath = copierFichierVersMedia(selectedFile, "videos");
+            
+            if (newPath != null) {
+                // Ajouter la vidéo à la description du ticket
+                boolean success = ticketManager.addVideoToTicketDescription(
+                    selectedTicket.getTicketID(), newPath);
+                
+                if (success) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Vidéo ajoutée avec succès !", 
+                        "Succès", JOptionPane.INFORMATION_MESSAGE);
+                    
+                    // Rafraîchir l'affichage des médias
+                    rafraichirMediaPanel();
+                } else {
+                    JOptionPane.showMessageDialog(this, 
+                        "Erreur lors de l'ajout de la vidéo à la description.", 
+                        "Erreur", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+    }
+
+    /**
+     * Copie un fichier vers le dossier media/ du projet
+     * @param fichierSource Le fichier source à copier
+     * @param sousRepertoire Le sous-répertoire dans media/ (images ou videos)
+     * @return Le chemin relatif du fichier copié, ou null en cas d'erreur
+     */
+    private String copierFichierVersMedia(File fichierSource, String sousRepertoire) {
+        try {
+            // Créer le répertoire de destination s'il n'existe pas
+            Path dossierMedia = Paths.get("media", sousRepertoire);
+            Files.createDirectories(dossierMedia);
+
+            // Générer un nom unique pour éviter les écrasements
+            String nomFichier = fichierSource.getName();
+            String timestamp = String.valueOf(System.currentTimeMillis());
+            String extension = nomFichier.substring(nomFichier.lastIndexOf("."));
+            String nomUnique = nomFichier.substring(0, nomFichier.lastIndexOf(".")) + "_" + timestamp + extension;
+
+            // Copier le fichier
+            Path destination = dossierMedia.resolve(nomUnique);
+            Files.copy(fichierSource.toPath(), destination, StandardCopyOption.REPLACE_EXISTING);
+
+            // Retourner le chemin relatif
+            String cheminRelatif = "media/" + sousRepertoire + "/" + nomUnique;
+            System.out.println("Fichier copié vers: " + cheminRelatif);
+            return cheminRelatif;
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Erreur lors de la copie du fichier : " + e.getMessage(), 
+                "Erreur", JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
+    }
+
+    /**
+     * Rafraîchit le panneau d'affichage des médias avec les images et vidéos du ticket sélectionné
+     * Affiche les miniatures des images et des icônes pour les vidéos
+     */
+    private void rafraichirMediaPanel() {
+        // Vider le panneau
+        mediaPanel.removeAll();
+
+        if (selectedTicket == null) {
+            mediaPanel.revalidate();
+            mediaPanel.repaint();
+            return;
+        }
+
+        Description description = selectedTicket.getDescription();
+        
+        // Afficher les images avec miniatures
+        List<String> imagePaths = description.getImagePaths();
+        for (String imagePath : imagePaths) {
+            try {
+                File imageFile = new File(imagePath);
+                if (imageFile.exists()) {
+                    // Charger et redimensionner l'image
+                    BufferedImage img = ImageIO.read(imageFile);
+                    if (img != null) {
+                        // Créer une miniature (100x100)
+                        Image scaledImg = img.getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                        ImageIcon icon = new ImageIcon(scaledImg);
+                        
+                        // Créer un panneau pour chaque image
+                        JPanel imagePanel = new JPanel();
+                        imagePanel.setLayout(new BorderLayout());
+                        JLabel imageLabel = new JLabel(icon);
+                        imageLabel.setToolTipText(imagePath);
+                        imagePanel.add(imageLabel, BorderLayout.CENTER);
+                        
+                        // Ajouter le nom du fichier sous l'image
+                        String fileName = imageFile.getName();
+                        if (fileName.length() > 15) {
+                            fileName = fileName.substring(0, 12) + "...";
+                        }
+                        JLabel nameLabel = new JLabel(fileName, SwingConstants.CENTER);
+                        nameLabel.setFont(new Font("Arial", Font.PLAIN, 10));
+                        imagePanel.add(nameLabel, BorderLayout.SOUTH);
+                        
+                        mediaPanel.add(imagePanel);
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Erreur lors du chargement de l'image: " + imagePath);
+            }
+        }
+
+        // Afficher les vidéos avec icônes
+        List<String> videoPaths = description.getVideoPaths();
+        for (String videoPath : videoPaths) {
+            File videoFile = new File(videoPath);
+            if (videoFile.exists()) {
+                // Créer un panneau pour chaque vidéo avec une icône
+                JPanel videoPanel = new JPanel();
+                videoPanel.setLayout(new BorderLayout());
+                videoPanel.setPreferredSize(new Dimension(100, 120));
+                
+                // Icône vidéo (symbole play)
+                JLabel videoIcon = new JLabel("▶", SwingConstants.CENTER);
+                videoIcon.setFont(new Font("Arial", Font.BOLD, 50));
+                videoIcon.setForeground(Color.BLUE);
+                videoIcon.setToolTipText(videoPath);
+                videoPanel.add(videoIcon, BorderLayout.CENTER);
+                
+                // Nom du fichier
+                String fileName = videoFile.getName();
+                if (fileName.length() > 15) {
+                    fileName = fileName.substring(0, 12) + "...";
+                }
+                JLabel nameLabel = new JLabel(fileName, SwingConstants.CENTER);
+                nameLabel.setFont(new Font("Arial", Font.PLAIN, 10));
+                videoPanel.add(nameLabel, BorderLayout.SOUTH);
+                
+                mediaPanel.add(videoPanel);
+            }
+        }
+
+        // Rafraîchir l'affichage
+        mediaPanel.revalidate();
+        mediaPanel.repaint();
+    }
+
+    /**
+     * Vide le panneau d'affichage des médias
+     */
+    private void viderMediaPanel() {
+        mediaPanel.removeAll();
+        mediaPanel.revalidate();
+        mediaPanel.repaint();
+    }
+    // ************************************************************************************** //
+
+    // ************************ Méthode d'export PDF ************************ //
+    /**
+     * Exporte le ticket sélectionné en PDF
+     * Demande à l'utilisateur où sauvegarder le fichier PDF
+     */
+    private void exporterTicketPDF() {
+        // Vérifier qu'un ticket est sélectionné
+        if (selectedTicket == null) {
+            JOptionPane.showMessageDialog(this, 
+                "Veuillez sélectionner un ticket à exporter !", 
+                "Erreur", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Créer un dialogue de sauvegarde
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Enregistrer le PDF");
+        fileChooser.setSelectedFile(new File("Ticket_" + selectedTicket.getTicketID() + ".pdf"));
+        
+        // Filtre pour les fichiers PDF
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("Fichiers PDF (*.pdf)", "pdf");
+        fileChooser.setFileFilter(filter);
+
+        // Afficher le dialogue et vérifier si l'utilisateur a choisi un emplacement
+        int result = fileChooser.showSaveDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            String filePath = selectedFile.getAbsolutePath();
+            
+            // S'assurer que le fichier a l'extension .pdf
+            if (!filePath.toLowerCase().endsWith(".pdf")) {
+                filePath += ".pdf";
+            }
+
+            // Exporter le ticket en PDF via le TicketManager
+            boolean success = ticketManager.exportTicketToPDF(selectedTicket.getTicketID(), filePath);
+
+            if (success) {
+                JOptionPane.showMessageDialog(this, 
+                    "Ticket exporté avec succès !\nEmplacement : " + filePath, 
+                    "Succès", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, 
+                    "Erreur lors de l'export du PDF.\nAssurez-vous que la bibliothèque iText est installée.\nConsultez INSTALLATION_ITEXT.md pour plus d'informations.", 
+                    "Erreur", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    // ********************************************************************** //
 }
