@@ -181,7 +181,7 @@ public class TicketManager {
             statusManager.updateStatus(ticket, "OUVERT", requestedBy);
             return assignationManager.unassignTicket(ticket, requestedBy);
         }
-        
+
         return false; // Rien à faire si le ticket est déjà terminé
     }
 
@@ -266,10 +266,10 @@ public class TicketManager {
             return false;
         }
 
+        if (ticket.isAssigned()) {
+            unassignTicket(ticketID, user);
+        }
         if (statusManager.updateStatus(ticket, "TERMINÉ", user)) {
-            if (ticket.isAssigned()) {
-                unassignTicket(ticketID, user);
-            }
             return true;
         }
         
