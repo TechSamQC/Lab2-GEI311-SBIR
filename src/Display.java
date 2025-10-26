@@ -1,5 +1,3 @@
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
@@ -199,9 +197,13 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
 
         // Événement pour le changement d'utilisateur connecté
         userList.addListSelectionListener(e -> {
-            currentUser = (User) userList.getSelectedValue();
-            rafraichirListeTickets(); // Rafraîchir la liste des tickets affichés
-            viderFormulaireTicket(); // Vider le formulaire de ticket
+            // Vérification que la valeur actuel de la liste n'est pas nulle (pour éviter une exception lors de suppression)
+            if (userList.getSelectedValue() != null)
+            {
+                currentUser = (User) userList.getSelectedValue();
+                rafraichirListeTickets(); // Rafraîchir la liste des tickets affichés
+                viderFormulaireTicket(); // Vider le formulaire de ticket
+            }
         });
 
         // Événement pour le filtre par statut
@@ -637,6 +639,7 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
                 }
                 rafraichirListeTickets(); // Rafraîchir la liste des tickets pour refléter les changements
             }
+            
             // Supprimer l'utilisateur de la liste
             allUsers.remove(currentUser);
 
