@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 
 public class Display extends JFrame{ // Classe pour l'affichage des tickets et interface GUI
     // Variables d'instance
@@ -30,6 +31,8 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
     private JButton createButton;
     private JButton addImageButton;
     private JButton showImagesButton;
+    private JButton addVideoButton;
+    private JButton showVideosButton;
     private JButton exportPDFButton;
     private JButton createUserButton;
     private JButton deleteUserButton;
@@ -71,6 +74,8 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
 
         // Initialisation de la liste d'images temporaires (pour les ajouter au ticket)
         tempImagesPath = new ArrayList<>();
+        // Initialisation de la liste de vidéos temporaires (pour les ajouter au ticket)
+        tempVideosPath = new ArrayList<>();
 
         // 1 : Initialiser les composants GUI
         initComponents();
@@ -112,13 +117,15 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         assignatedUserBox.insertItemAt(null, 0); // Option pour ne pas assigner d'utilisateur
         assignatedUserBox.setSelectedIndex(0); // Valeur par défaut = null
         addImageButton = new JButton("Ajouter une image à la description"); // Boutton pour ajouter une image à la description
+        addVideoButton = new JButton("Ajouter une vidéo à la description"); // Boutton pour ajouter une vidéo à la description
         showImagesButton = new JButton("Voir les images"); // Boutton pour voir les images
+        showVideosButton = new JButton("Voir les vidéos"); // Boutton pour voir les vidéos
         saveButton = new JButton("Modifier ticket"); // Bouton pour modifier un ticket
         createButton = new JButton("Créer ticket"); // Bouton pour créer un ticket
         desassignButton = new JButton("Désassigner le ticket"); // Bouton pour désassigner un utilisateur d'un ticket
         exportPDFButton = new JButton("Exporter le ticket en PDF"); // Bouton pour exporter un ticket en PDF
         // Panneau de creation/modification
-        formPanel = new JPanel(new GridLayout(11, 1)); // Panneau de formulaire pour créer/modifier un ticket
+        formPanel = new JPanel(new GridLayout(12, 1)); // Panneau de formulaire pour créer/modifier un ticket
         formPanel.add(new JLabel("Titre :")); // Étiquette pour le titre
         formPanel.add(titreField); // Ajout du champ de titre
         formPanel.add(new JLabel("Informations sur le ticket :")); // Étiquette pour les autres informations
@@ -126,7 +133,9 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         formPanel.add(new JLabel("Description :")); // Étiquette pour la description
         formPanel.add(new JScrollPane(descriptionArea)); // Ajout de la zone de texte pour la description
         formPanel.add(addImageButton); // Ajout du bouton pour ajouter des images
+        formPanel.add(addVideoButton); // Ajout du bouton pour ajouter des images
         formPanel.add(showImagesButton); // Ajout du bouton pour montrer les images
+        formPanel.add(showVideosButton); // Ajout du bouton pour montrer les images
         formPanel.add(new JLabel("Commentaires :")); // Étiquette pour les commentaires courants
         formPanel.add(new JScrollPane(currentComments)); // Ajout de la zone de texte pour les commentaires courants
         formPanel.add(new JLabel("Ajouter un commentaire :")); // Étiquette pour les commentaires
@@ -202,6 +211,12 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         // Événement pour le bouton "AfficherImages"
         showImagesButton.addActionListener(e -> showImages());
 
+        // Événement pour le bouton "AjouterImage"
+        addVideoButton.addActionListener(e -> ajouterVideo());
+
+        // Événement pour le bouton "AfficherImages"
+        showVideosButton.addActionListener(e -> showVideos());
+
         // Événement pour la sélection d'un ticket dans la liste
         ticketList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
@@ -250,6 +265,7 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         prioriteBox.setSelectedIndex(0); // Réinitialiser la priorité
         assignatedUserBox.setSelectedIndex(0); // Réinitialiser l'utilisateur assigné
         tempImagesPath.clear(); // Libération de la liste d'images temporaires pour ne pas garder les images d'un ticket à un autre ou les ajouter plusieurs fois.
+        tempVideosPath.clear(); // Libération de la liste de vidéos temporaires pour ne pas garder les vidéos d'un ticket à un autre ou les ajouter plusieurs fois.
     }
 
     // Méthode pour remplir le formulaire de ticket avec les données d'un ticket sélectionné
@@ -340,6 +356,14 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
                         ticketManager.addImageToTicketDescription(newTicket.getTicketID(), path);
                     }
                     tempImagesPath.clear(); // Libération de la liste d'images temporaires pour ne pas garder les images d'un ticket à un autre ou les ajouter plusieurs fois.
+                }
+
+                // Ajouter les vidéos si il y en a
+                if (!tempVideosPath.isEmpty()) {
+                    for (String path : tempVideosPath) {
+                        ticketManager.addVideoToTicketDescription(newTicket.getTicketID(), path);
+                    }
+                    tempVideosPath.clear(); // Libération de la liste de vidéos temporaires pour ne pas garder les vidéos d'un ticket à un autre ou les ajouter plusieurs fois.
                 }
 
                 // Ajouter un commentaire si fourni
@@ -483,6 +507,14 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
                 tempImagesPath.clear(); // Libération de la liste d'images temporaires pour ne pas garder les images d'un ticket à un autre ou les ajouter plusieurs fois.
             }
 
+            // Ajouter les vidéos si il y en a
+            if (!tempVideosPath.isEmpty()) {
+                for (String path : tempVideosPath) {
+                    ticketManager.addVideoToTicketDescription(selectedTicket.getTicketID(), path);
+                }
+                tempVideosPath.clear(); // Libération de la liste de vidéos temporaires pour ne pas garder les vidéos d'un ticket à un autre ou les ajouter plusieurs fois.
+            }
+
             // Ajouter un commentaire si fourni
             if (!commentaire.isEmpty()) {
                 // Ajouter le commentaire via le ticketManager
@@ -550,7 +582,7 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
     private void showImages() {
         // SI aucun ticket sélectionné, afficher un message d'erreur
         if (selectedTicket == null) {
-            JOptionPane.showMessageDialog(this, "Veuillez sélectionner un ticket à désassigner !", 
+            JOptionPane.showMessageDialog(this, "Veuillez sélectionner un ticket pour afficher les images !", 
                 "Erreur", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -576,7 +608,74 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
             JOptionPane.showMessageDialog(this, "Erreur lors de l'affichage d'images : " + ex.getMessage(), 
             "Erreur", JOptionPane.ERROR_MESSAGE);
         }
-        
+    }
+
+    // Méthode pour ajouter une vidéo à la description du ticket
+    private void ajouterVideo() {
+        try {
+            // Filechooser pour choisir la vidéo.
+            JFileChooser fileChooser = new JFileChooser();
+            int result = fileChooser.showOpenDialog(null);
+
+            // Si le résultat est l'approbation, on peut récuperer le fichier.
+            if (result == JFileChooser.APPROVE_OPTION) {
+                // Ajouter le chemin de la vidéo choisie dans la liste de chemin temporaire de vidéos
+                tempVideosPath.add(fileChooser.getSelectedFile().getAbsolutePath());
+            }
+        } catch (Exception ex) {
+            // Afficher un message d'erreur en cas d'exception d'exécution
+            JOptionPane.showMessageDialog(this, "Erreur lors de l'ajout de la vidéo : " + ex.getMessage(), 
+            "Erreur", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void showVideos() {
+        // SI aucun ticket sélectionné, afficher un message d'erreur
+        if (selectedTicket == null) {
+            JOptionPane.showMessageDialog(this, "Veuillez sélectionner un ticket pour afficher les vidéos !", 
+                "Erreur", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            // Création du panneau qui affichera les images
+            JPanel panel = new JPanel();
+            panel.setLayout(new GridLayout());
+
+            int i = 0; // Variable pour compter les vidéos
+            // Pour tous les images dans la description du ticket, les récuperer et les ajouter au paneau
+            for (String path : selectedTicket.getDescription().getVideoPaths()) {
+                // Ajout d'un boutton play pour faire jouer la vidéo (avec une autre fonction).
+                JButton play = new JButton("▶ Play");
+                panel.add(play);
+                play.addActionListener(e -> lancerVideo(path));
+
+                // Ajout de la vidéo à la liste de vidéos
+                JLabel label = new JLabel("Vidéo " + (i + 1));
+                panel.add(label);
+                i++;
+            }
+
+            // Ajouter le panel (le rendre scrollable) à un JFrame pour afficher les vidéos
+            JFrame frame = new JFrame("Vidéos dans la description");
+            frame.add(new JScrollPane(panel)); // scrollable si trop d'images
+            frame.pack();
+            frame.setVisible(true);
+        } catch (Exception ex) {
+            // Afficher un message d'erreur en cas d'exception d'exécution
+            JOptionPane.showMessageDialog(this, "Erreur lors de l'affichage des vidéos : " + ex.getMessage(), 
+            "Erreur", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void lancerVideo(String path) {
+        try {
+            Desktop.getDesktop().open(new File(path)); // Lance la vidéo avec VLC / Windows Media Player
+        } catch (Exception ex) {
+            // Afficher un message d'erreur en cas d'exception d'exécution
+            JOptionPane.showMessageDialog(this, "Erreur lors de la lecture de la vidéo : " + path + " error : " + ex.getMessage(), 
+            "Erreur", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     // Méthode pour filtrer les tickets par statut
