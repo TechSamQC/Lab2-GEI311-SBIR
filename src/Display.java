@@ -8,6 +8,8 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
     private List<User> allUsers;
     private User currentUser;
     private Ticket selectedTicket;
+    private List<String> tempImagesPath;
+    private List<String> tempVideosPath;
 
     // Composants GUI
     private JList<Ticket> ticketList;
@@ -26,6 +28,8 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
     private JComboBox<String> filterStatusBox;
     private JButton saveButton;
     private JButton createButton;
+    private JButton addImageButton;
+    private JButton showImagesButton;
     private JButton exportPDFButton;
     private JButton createUserButton;
     private JButton deleteUserButton;
@@ -64,6 +68,9 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         // Initialisation de la liste des utilisateurs
         allUsers = new ArrayList<>(List.of(new User(0, "SYS ADMIN", "SYSTEM@EXAMPLE.COM", "ADMIN"))); /*Initialisation de la liste
         des utilisateurs avec utilisateur système par défaut*/
+
+        // Initialisation de la liste d'images temporaires (pour les ajouter au ticket)
+        tempImagesPath = new ArrayList<>();
 
         // 1 : Initialiser les composants GUI
         initComponents();
@@ -104,18 +111,22 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         assignatedUserBox = new JComboBox<>(allUsers.toArray(new User[0])); // Liste déroulante pour l'utilisateur assigné
         assignatedUserBox.insertItemAt(null, 0); // Option pour ne pas assigner d'utilisateur
         assignatedUserBox.setSelectedIndex(0); // Valeur par défaut = null
+        addImageButton = new JButton("Ajouter une image à la description"); // Boutton pour ajouter une image à la description
+        showImagesButton = new JButton("Voir les images"); // Boutton pour voir les images
         saveButton = new JButton("Modifier ticket"); // Bouton pour modifier un ticket
         createButton = new JButton("Créer ticket"); // Bouton pour créer un ticket
         desassignButton = new JButton("Désassigner le ticket"); // Bouton pour désassigner un utilisateur d'un ticket
         exportPDFButton = new JButton("Exporter le ticket en PDF"); // Bouton pour exporter un ticket en PDF
         // Panneau de creation/modification
-        formPanel = new JPanel(new GridLayout(10, 1)); // Panneau de formulaire pour créer/modifier un ticket
+        formPanel = new JPanel(new GridLayout(11, 1)); // Panneau de formulaire pour créer/modifier un ticket
         formPanel.add(new JLabel("Titre :")); // Étiquette pour le titre
         formPanel.add(titreField); // Ajout du champ de titre
         formPanel.add(new JLabel("Informations sur le ticket :")); // Étiquette pour les autres informations
         formPanel.add(new JScrollPane(otherInfoArea)); // Ajout de la zone de texte pour les autres informations
         formPanel.add(new JLabel("Description :")); // Étiquette pour la description
         formPanel.add(new JScrollPane(descriptionArea)); // Ajout de la zone de texte pour la description
+        formPanel.add(addImageButton); // Ajout du bouton pour ajouter des images
+        formPanel.add(showImagesButton); // Ajout du bouton pour montrer les images
         formPanel.add(new JLabel("Commentaires :")); // Étiquette pour les commentaires courants
         formPanel.add(new JScrollPane(currentComments)); // Ajout de la zone de texte pour les commentaires courants
         formPanel.add(new JLabel("Ajouter un commentaire :")); // Étiquette pour les commentaires
@@ -185,6 +196,12 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         // Événement pour le bouton "Supprimer" d'utilisateur
         deleteUserButton.addActionListener(e -> supprimerUtilisateur());
 
+        // Événement pour le bouton "AjouterImage"
+        addImageButton.addActionListener(e -> ajouterImage());
+
+        // Événement pour le bouton "AfficherImages"
+        showImagesButton.addActionListener(e -> showImages());
+
         // Événement pour la sélection d'un ticket dans la liste
         ticketList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
@@ -232,6 +249,7 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         statutBox.setSelectedIndex(0); // Réinitialiser le statut
         prioriteBox.setSelectedIndex(0); // Réinitialiser la priorité
         assignatedUserBox.setSelectedIndex(0); // Réinitialiser l'utilisateur assigné
+        tempImagesPath.clear(); // Libération de la liste d'images temporaires pour ne pas garder les images d'un ticket à un autre ou les ajouter plusieurs fois.
     }
 
     // Méthode pour remplir le formulaire de ticket avec les données d'un ticket sélectionné
@@ -314,6 +332,14 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
                     JOptionPane.showMessageDialog(this, "Vous n'avez pas assigné d'utilisateur au ticket. Aucun commentaire ne sera ajouté.", 
                     "Assignation", JOptionPane.INFORMATION_MESSAGE);
                     commentaire = "";
+                }
+
+                // Ajouter les images si il y en a
+                if (!tempImagesPath.isEmpty()) {
+                    for (String path : tempImagesPath) {
+                        ticketManager.addImageToTicketDescription(newTicket.getTicketID(), path);
+                    }
+                    tempImagesPath.clear(); // Libération de la liste d'images temporaires pour ne pas garder les images d'un ticket à un autre ou les ajouter plusieurs fois.
                 }
 
                 // Ajouter un commentaire si fourni
@@ -449,6 +475,14 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
                 }
             }
 
+            // Ajouter les images si il y en a
+            if (!tempImagesPath.isEmpty()) {
+                for (String path : tempImagesPath) {
+                    ticketManager.addImageToTicketDescription(selectedTicket.getTicketID(), path);
+                }
+                tempImagesPath.clear(); // Libération de la liste d'images temporaires pour ne pas garder les images d'un ticket à un autre ou les ajouter plusieurs fois.
+            }
+
             // Ajouter un commentaire si fourni
             if (!commentaire.isEmpty()) {
                 // Ajouter le commentaire via le ticketManager
@@ -492,6 +526,57 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
                 "Erreur lors de la création/modification du ticket : " + ex.getMessage(), "Erreur", 
                 JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    // Méthode pour ajouter une image à la description du ticket
+    private void ajouterImage() {
+        try {
+            // Filechooser pour choisir l'image.
+            JFileChooser fileChooser = new JFileChooser();
+            int result = fileChooser.showOpenDialog(null);
+
+            // Si le résultat est l'approbation, on peut récuperer le fichier.
+            if (result == JFileChooser.APPROVE_OPTION) {
+                // Ajouter le chemin de l'image choisi dans la liste de chemin temporaire d'images
+                tempImagesPath.add(fileChooser.getSelectedFile().getAbsolutePath());
+            }
+        } catch (Exception ex) {
+            // Afficher un message d'erreur en cas d'exception d'exécution
+            JOptionPane.showMessageDialog(this, "Erreur lors de l'ajout d'image : " + ex.getMessage(), 
+            "Erreur", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void showImages() {
+        // SI aucun ticket sélectionné, afficher un message d'erreur
+        if (selectedTicket == null) {
+            JOptionPane.showMessageDialog(this, "Veuillez sélectionner un ticket à désassigner !", 
+                "Erreur", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            // Création du panneau qui affichera les images
+            JPanel panel = new JPanel();
+            panel.setLayout(new GridLayout());
+
+            // Pour tous les images dans la description du ticket, les récuperer et les ajouter au paneau
+            for (ImageIcon icon : selectedTicket.getDescription().getImages()) {
+                JLabel label = new JLabel(icon);
+                panel.add(label);
+            }
+
+            // Ajouter le panel (le rendre scrollable) à un JFrame pour afficher les images
+            JFrame frame = new JFrame("Images dans la description");
+            frame.add(new JScrollPane(panel)); // scrollable si trop d'images
+            frame.pack();
+            frame.setVisible(true);
+        } catch (Exception ex) {
+            // Afficher un message d'erreur en cas d'exception d'exécution
+            JOptionPane.showMessageDialog(this, "Erreur lors de l'affichage d'images : " + ex.getMessage(), 
+            "Erreur", JOptionPane.ERROR_MESSAGE);
+        }
+        
     }
 
     // Méthode pour filtrer les tickets par statut

@@ -1,22 +1,23 @@
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.ImageIcon;
 
 public class Description {
     private String textContent;
-    private List<String> imagePaths;
+    private List<ImageIcon> images;
     private List<String> videoPaths;
 
     // Constructeur par défaut
     public Description() {
         this.textContent = "";
-        this.imagePaths = new ArrayList<>();
+        this.images = new ArrayList<>();
         this.videoPaths = new ArrayList<>();
     }
 
     // Constructeur avec texte
     public Description(String textContent) {
         this.textContent = textContent != null ? textContent : "";
-        this.imagePaths = new ArrayList<>();
+        this.images = new ArrayList<>();
         this.videoPaths = new ArrayList<>();
     }
 
@@ -25,8 +26,8 @@ public class Description {
         return textContent;
     }
 
-    public List<String> getImagePaths() {
-        return new ArrayList<>(imagePaths);
+    public List<ImageIcon> getImages() {
+        return new ArrayList<>(images);
     }
 
     public List<String> getVideoPaths() {
@@ -39,22 +40,23 @@ public class Description {
     }
 
     // Méthodes pour gérer les images
-    public void addImagePath(String path) {
+    public void addImage(String path) {
         if (path != null && !path.trim().isEmpty()) {
-            imagePaths.add(path);
+            ImageIcon icon = new ImageIcon(path);
+            images.add(icon);
         }
     }
 
-    public boolean removeImagePath(String path) {
-        boolean removed = imagePaths.remove(path);
+    public boolean removeImage(ImageIcon image) {
+        boolean removed = images.remove(image);
         if (removed) {
         }
         return removed;
     }
 
     public void clearImages() {
-        if (!imagePaths.isEmpty()) {
-            imagePaths.clear();
+        if (!images.isEmpty()) {
+            images.clear();
         }
     }
 
@@ -84,7 +86,7 @@ public class Description {
     }
 
     public boolean hasImages() {
-        return !imagePaths.isEmpty();
+        return !images.isEmpty();
     }
 
     public boolean hasVideos() {
@@ -103,9 +105,6 @@ public class Description {
         } else {
             summary.append("Aucun texte");
         }
-        
-        summary.append(" | Images: ").append(imagePaths.size());
-        summary.append(" | Vidéos: ").append(videoPaths.size());
         
         return summary.toString();
     }

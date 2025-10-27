@@ -34,9 +34,8 @@ public class DescriptionValidator {
         }
         
         return validateTextContent(description.getTextContent()) &&
-               validateImageCount(description.getImagePaths().size()) &&
+               validateImageCount(description.getImages().size()) &&
                validateVideoCount(description.getVideoPaths().size()) &&
-               validateAllImagePaths(description.getImagePaths()) &&
                validateAllVideoPaths(description.getVideoPaths());
     }
 
@@ -102,16 +101,6 @@ public class DescriptionValidator {
         return count >= 0 && count <= maxVideosCount;
     }
 
-    // Validation de tous les chemins d'images
-    private boolean validateAllImagePaths(List<String> paths) {
-        for (String path : paths) {
-            if (!validateImagePath(path)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     // Validation de tous les chemins de vidéos
     private boolean validateAllVideoPaths(List<String> paths) {
         for (String path : paths) {
@@ -137,7 +126,7 @@ public class DescriptionValidator {
         }
 
         // Vérification du nombre d'images
-        int imageCount = description.getImagePaths().size();
+        int imageCount = description.getImages().size();
         if (!validateImageCount(imageCount)) {
             errors.add("Nombre d'images invalide: " + imageCount + " (maximum: " + maxImagesCount + ")");
         }
@@ -146,13 +135,6 @@ public class DescriptionValidator {
         int videoCount = description.getVideoPaths().size();
         if (!validateVideoCount(videoCount)) {
             errors.add("Nombre de vidéos invalide: " + videoCount + " (maximum: " + maxVideosCount + ")");
-        }
-
-        // Vérification des chemins d'images
-        for (String path : description.getImagePaths()) {
-            if (!validateImagePath(path)) {
-                errors.add("Chemin d'image invalide: " + path);
-            }
         }
 
         // Vérification des chemins de vidéos
