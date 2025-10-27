@@ -8,6 +8,7 @@ public class TicketManager {
     private commentManager commentManager;
     private AssignationManager assignationManager;
     private descriptionManager descriptionManager;
+    private pdfExporter PDFexporter;
 
     // Constructeur
     public TicketManager() {
@@ -17,6 +18,7 @@ public class TicketManager {
         this.commentManager = new commentManager();
         this.assignationManager = new AssignationManager();
         this.descriptionManager = new descriptionManager();
+        this.PDFexporter = new pdfExporter();
     }
 
     // ============= GESTION DES TICKETS =============
@@ -283,6 +285,7 @@ public class TicketManager {
             System.out.println("Erreur: Ticket #" + ticketID + " introuvable.");
             return false;
         }
+        PDFexporter.exportTicketToPDF(ticket, filePath);
         return true;
     }
 

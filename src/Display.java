@@ -561,7 +561,28 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
     }
 
     private void exporterTicketPDF() {
-        ticketManager.exportTicketToPDF(selectedTicket.getTicketID(), getName());
+        try {
+            // SI aucun ticket sélectionné, afficher un message d'erreur
+            if (selectedTicket == null) {
+                JOptionPane.showMessageDialog(this, "Veuillez sélectionner un ticket l'exporter en PDF !", 
+                    "Erreur", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // L'utilisateur doit choisir l'emplacement et le nom de son fichier pdf
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Enregistrer le ticket en PDF");
+            fileChooser.setSelectedFile(new File("ticket_" + selectedTicket.getTicketID() + ".pdf"));
+            int result = fileChooser.showSaveDialog(null);
+            if (result != JFileChooser.APPROVE_OPTION) return; // Si l'utilisateur n'approuve pas, on annule
+            // Export en pdf du ticket avec le chemin choisi
+            ticketManager.exportTicketToPDF(selectedTicket.getTicketID(), fileChooser.getSelectedFile().getAbsolutePath());
+
+        } catch (Exception ex) {
+            // Afficher un message d'erreur en cas d'exception d'exécution
+            JOptionPane.showMessageDialog(this, "Erreur lors de l'export en PDF : " + ex.getMessage(), 
+            "Erreur", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     // Méthode pour ajouter une image à la description du ticket
