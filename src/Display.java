@@ -194,7 +194,7 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         saveButton.addActionListener(e -> modifierTicket());
 
         // Événement pour le bouton "Exporter en PDF"
-        //exportPDFButton.addActionListener(e -> exporterTicketPDF());
+        exportPDFButton.addActionListener(e -> exporterTicketPDF());
 
         // Événement pour le bouton "Désassigner"
         desassignButton.addActionListener(e -> desassignerUtilisateur());
@@ -560,6 +560,10 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         }
     }
 
+    private void exporterTicketPDF() {
+        ticketManager.exportTicketToPDF(selectedTicket.getTicketID(), getName());
+    }
+
     // Méthode pour ajouter une image à la description du ticket
     private void ajouterImage() {
         try {
@@ -645,14 +649,10 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
             int i = 0; // Variable pour compter les vidéos
             // Pour tous les images dans la description du ticket, les récuperer et les ajouter au paneau
             for (String path : selectedTicket.getDescription().getVideoPaths()) {
-                // Ajout d'un boutton play pour faire jouer la vidéo (avec une autre fonction).
-                JButton play = new JButton("▶ Play");
+                // Ajout d'un boutton play et d'un listener pour faire jouer la vidéo (avec une autre fonction).
+                JButton play = new JButton("▶ Play vidéo " + (i + 1));
                 panel.add(play);
                 play.addActionListener(e -> lancerVideo(path));
-
-                // Ajout de la vidéo à la liste de vidéos
-                JLabel label = new JLabel("Vidéo " + (i + 1));
-                panel.add(label);
                 i++;
             }
 
@@ -708,11 +708,6 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
             JOptionPane.showMessageDialog(this, "Veuillez sélectionner un utilisateur connecté !", 
                 "Erreur", JOptionPane.ERROR_MESSAGE);
             return;
-        }
-
-        // SI 
-        if (!currentUser.canAssignTickets()) {
-
         }
 
         // Si tout est OK, procéder à la désassignation
