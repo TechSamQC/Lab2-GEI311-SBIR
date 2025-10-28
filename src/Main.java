@@ -6,7 +6,8 @@ import javax.swing.SwingUtilities;
  */
 public class Main {
     public static void main(String[] args) {
-        // Lancement de l'interface graphique dans le thread EDT (Event Dispatch Thread)
+        // Lancement de l'interface graphique dans le thread EDT (Event Dispatch Thread) pour garantir que l'interface est
+        // exécutée en toute sécurité dans le contexte de l'interface utilisateur.
         SwingUtilities.invokeLater(() -> {
             new Display();
         });
