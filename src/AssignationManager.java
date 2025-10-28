@@ -57,15 +57,9 @@ public class AssignationManager {
 
     // Vérifie si un utilisateur peut assigner un ticket
     private boolean canAssign(User user, Ticket ticket, User requestedBy) {
-        // Seuls les admins peuvent assigner des tickets
+        // Seuls les devs et admins peuvent assigner des tickets
         if (!requestedBy.canAssignTickets()) {
             System.out.println("Erreur: Vous n'avez pas la permission d'assigner ce ticket.");
-            return false;
-        }
-
-        // Un développeur ne peut PAS assigner un ticket à un admin
-        if (requestedBy.getRole().equalsIgnoreCase("DEVELOPER") && user.isAdmin()) {
-            System.out.println("Erreur: Un développeur ne peut pas assigner un ticket à un administrateur.");
             return false;
         }
 
