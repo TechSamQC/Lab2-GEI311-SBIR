@@ -1,10 +1,16 @@
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.io.File;
 
 public class Display extends JFrame{ // Classe pour l'affichage des tickets et interface GUI
+    // Constantes de couleurs
+    private static final Color PRIMARY_COLOR = new Color(55, 65, 81); // #374151 (Gris foncé)
+    private static final Color BACKGROUND_COLOR = new Color(249, 250, 251); // #F9FAFB
+    private static final Color BORDER_COLOR = new Color(229, 231, 235); // #E5E7EB
+    
     // Variables d'instance
     private List<User> allUsers;
     private User currentUser;
@@ -54,6 +60,9 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
 
     // *********************************** Constructeur *********************************** //
     public Display() {
+        // Initialiser le Look and Feel moderne
+        initLookAndFeel();
+        
         // Configuration de la fenêtre principale
         setTitle("Programme de gestion des tickets"); // Titre de la fenêtre
         setSize(1350, 650); // Taille de la fenêtre
@@ -85,6 +94,32 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
 
         // 3 : Rendre la fenêtre visible
         setVisible(true);
+    }
+    // ********************************************************************************************* //
+    
+    // ************************ Méthode pour initialiser le Look and Feel ************************ //
+    private void initLookAndFeel() {
+        try {
+            // Essayer d'abord FlatLightLaf
+            UIManager.setLookAndFeel("com.formdev.flatlaf.FlatLightLaf");
+        } catch (Exception e) {
+            try {
+                // Si FlatLaf n'est pas disponible, utiliser Nimbus
+                for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                    if ("Nimbus".equals(info.getName())) {
+                        UIManager.setLookAndFeel(info.getClassName());
+                        break;
+                    }
+                }
+            } catch (Exception ex) {
+                // Si Nimbus n'est pas disponible, utiliser le Look and Feel par défaut
+                try {
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                } catch (Exception exc) {
+                    exc.printStackTrace();
+                }
+            }
+        }
     }
     // ********************************************************************************************* //
 
@@ -125,26 +160,69 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         desassignButton = new JButton("Désassigner le ticket"); // Bouton pour désassigner un utilisateur d'un ticket
         exportPDFButton = new JButton("Exporter le ticket en PDF"); // Bouton pour exporter un ticket en PDF
         // Panneau de creation/modification
-        formPanel = new JPanel(new GridLayout(12, 1)); // Panneau de formulaire pour créer/modifier un ticket
-        formPanel.add(new JLabel("Titre :")); // Étiquette pour le titre
+        formPanel = new JPanel(new GridLayout(12, 1, 0, 10)); // Panneau de formulaire avec espacement de 10px
+        formPanel.setBackground(BACKGROUND_COLOR);
+        formPanel.setBorder(new EmptyBorder(15, 15, 15, 15)); // Marges de 15px
+        
+        // Appliquer les styles aux boutons
+        styleButton(addImageButton);
+        styleButton(addVideoButton);
+        styleButton(showImagesButton);
+        styleButton(showVideosButton);
+        styleButton(saveButton);
+        styleButton(createButton);
+        styleButton(desassignButton);
+        styleButton(exportPDFButton);
+        
+        // Appliquer les styles aux champs de texte
+        styleTextField(titreField);
+        styleTextArea(descriptionArea);
+        styleTextArea(commentArea);
+        styleTextArea(currentComments);
+        styleTextArea(otherInfoArea);
+        
+        JLabel titleLabel = new JLabel("Titre :");
+        styleTitleLabel(titleLabel);
+        formPanel.add(titleLabel); // Étiquette pour le titre
         formPanel.add(titreField); // Ajout du champ de titre
-        formPanel.add(new JLabel("Informations sur le ticket :")); // Étiquette pour les autres informations
+        
+        JLabel infoLabel = new JLabel("Informations sur le ticket :");
+        styleTitleLabel(infoLabel);
+        formPanel.add(infoLabel); // Étiquette pour les autres informations
         formPanel.add(new JScrollPane(otherInfoArea)); // Ajout de la zone de texte pour les autres informations
-        formPanel.add(new JLabel("Description :")); // Étiquette pour la description
+        
+        JLabel descLabel = new JLabel("Description :");
+        styleTitleLabel(descLabel);
+        formPanel.add(descLabel); // Étiquette pour la description
         formPanel.add(new JScrollPane(descriptionArea)); // Ajout de la zone de texte pour la description
         formPanel.add(addImageButton); // Ajout du bouton pour ajouter des images
         formPanel.add(addVideoButton); // Ajout du bouton pour ajouter des images
         formPanel.add(showImagesButton); // Ajout du bouton pour montrer les images
         formPanel.add(showVideosButton); // Ajout du bouton pour montrer les images
-        formPanel.add(new JLabel("Commentaires :")); // Étiquette pour les commentaires courants
+        
+        JLabel commentsLabel = new JLabel("Commentaires :");
+        styleTitleLabel(commentsLabel);
+        formPanel.add(commentsLabel); // Étiquette pour les commentaires courants
         formPanel.add(new JScrollPane(currentComments)); // Ajout de la zone de texte pour les commentaires courants
-        formPanel.add(new JLabel("Ajouter un commentaire :")); // Étiquette pour les commentaires
+        
+        JLabel addCommentLabel = new JLabel("Ajouter un commentaire :");
+        styleTitleLabel(addCommentLabel);
+        formPanel.add(addCommentLabel); // Étiquette pour les commentaires
         formPanel.add(new JScrollPane(commentArea)); // Ajout de la zone de texte pour les commentaires
-        formPanel.add(new JLabel("Statut :")); // Étiquette pour le statut
+        
+        JLabel statutLabel = new JLabel("Statut :");
+        styleTitleLabel(statutLabel);
+        formPanel.add(statutLabel); // Étiquette pour le statut
         formPanel.add(statutBox); // Ajout de la liste déroulante pour le statut
-        formPanel.add(new JLabel("Priorité :")); // Étiquette pour la priorité
+        
+        JLabel prioriteLabel = new JLabel("Priorité :");
+        styleTitleLabel(prioriteLabel);
+        formPanel.add(prioriteLabel); // Étiquette pour la priorité
         formPanel.add(prioriteBox); // Ajout de la liste déroulante pour la priorité
-        formPanel.add(new JLabel("Utilisateur assigné :")); // Étiquette pour l'utilisateur assigné
+        
+        JLabel userAssignLabel = new JLabel("Utilisateur assigné :");
+        styleTitleLabel(userAssignLabel);
+        formPanel.add(userAssignLabel); // Étiquette pour l'utilisateur assigné
         formPanel.add(assignatedUserBox); // Ajout de la liste déroulante pour l'utilisateur assigné
         formPanel.add(createButton); // Ajout du bouton de création de ticket
         formPanel.add(saveButton); // Ajout du bouton de modification de ticket
@@ -158,20 +236,44 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         userTypeBox = new JComboBox<>(new String[]{"ADMIN", "DEVELOPER", "USER"}); // Liste déroulante pour le rôle utilisateur
         userNameField = new JTextField(); // Champ de texte pour le nom d'utilisateur
         userEmailField = new JTextField(); // Champ de texte pour l'email
+        
+        // Appliquer les styles aux composants utilisateur
+        styleButton(createUserButton);
+        styleButton(deleteUserButton);
+        styleTextField(userNameField);
+        styleTextField(userEmailField);
+        
         // Panneau des utilisateurs
-        userPanel = new JPanel(new GridLayout(4, 1)); // Panneau pour la gestion des utilisateurs
-        userPanel.add(new JLabel("Rôle utilisateur :")); // Étiquette pour le rôle utilisateur
+        userPanel = new JPanel(new GridLayout(4, 1, 0, 10)); // Panneau avec espacement de 10px
+        userPanel.setBackground(BACKGROUND_COLOR);
+        userPanel.setBorder(new EmptyBorder(15, 15, 15, 15)); // Marges de 15px
+        
+        JLabel roleLabel = new JLabel("Rôle utilisateur :");
+        styleTitleLabel(roleLabel);
+        userPanel.add(roleLabel); // Étiquette pour le rôle utilisateur
         userPanel.add(userTypeBox); // Ajout de la liste déroulante pour le rôle utilisateur
-        userPanel.add(new JLabel("Nom d'utilisateur :")); // Étiquette pour le nom d'utilisateur
+        
+        JLabel nameLabel = new JLabel("Nom d'utilisateur :");
+        styleTitleLabel(nameLabel);
+        userPanel.add(nameLabel); // Étiquette pour le nom d'utilisateur
         userPanel.add(userNameField); // Champ de texte pour le nom d'utilisateur
-        userPanel.add(new JLabel("Email :")); // Étiquette pour l'email
+        
+        JLabel emailLabel = new JLabel("Email :");
+        styleTitleLabel(emailLabel);
+        userPanel.add(emailLabel); // Étiquette pour l'email
         userPanel.add(userEmailField); // Champ de texte pour l'email
         userPanel.add(createUserButton); // Ajout du bouton de création d'utilisateur
         userPanel.add(deleteUserButton); // Ajout du bouton de suppression d'utilisateur
 
         // Liste de sélection des utilisateurs EN HAUT
         userList = new JList<>(allUsers.toArray(new User[0])); // Liste des utilisateurs qui permet de sélectionner un utilisateur
+        styleList(userList);
         affichageUtilisateurs = new JScrollPane(userList); // Affichage qui permet le défilement
+        
+        // Styliser la liste des tickets
+        styleList(ticketList);
+        ticketPanel.setBackground(BACKGROUND_COLOR);
+        ticketPanel.setBorder(new EmptyBorder(15, 15, 15, 15)); // Marges de 15px
 
         // Ajout des panneaux à la fenêtre principale
         ticketPanel.setBorder(BorderFactory.createTitledBorder("Tickets")); // Bordure avec titre pour la liste des tickets
@@ -912,4 +1014,71 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
             "Erreur", JOptionPane.ERROR_MESSAGE);
         }
     }
+    // ************************************************************************************** //
+    
+    // ************************ Méthodes de style pour les composants ************************ //
+    /**
+     * Applique un style moderne aux boutons
+     */
+    private void styleButton(JButton button) {
+        button.setFont(new Font(button.getFont().getName(), Font.BOLD, button.getFont().getSize()));
+        button.setBackground(PRIMARY_COLOR);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false); // Supprimer la bordure focus
+        button.setBorderPainted(false);
+        button.setOpaque(true);
+        button.setBorder(new EmptyBorder(8, 16, 8, 16)); // Padding (8,16,8,16)
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // Effet hover
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(PRIMARY_COLOR.darker());
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(PRIMARY_COLOR);
+            }
+        });
+    }
+    
+    /**
+     * Applique un style moderne aux labels de titre
+     */
+    private void styleTitleLabel(JLabel label) {
+        label.setFont(new Font(label.getFont().getName(), Font.BOLD, 16));
+    }
+    
+    /**
+     * Applique un style moderne aux champs de texte
+     */
+    private void styleTextField(JTextField textField) {
+        textField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_COLOR, 1),
+            new EmptyBorder(5, 5, 5, 5) // Padding interne de 5px
+        ));
+    }
+    
+    /**
+     * Applique un style moderne aux zones de texte
+     */
+    private void styleTextArea(JTextArea textArea) {
+        textArea.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(BORDER_COLOR, 1),
+            new EmptyBorder(5, 5, 5, 5) // Padding interne de 5px
+        ));
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+    }
+    
+    /**
+     * Applique un style moderne aux listes (JList)
+     */
+    private void styleList(JList<?> list) {
+        list.setFixedCellHeight(30); // Hauteur de ligne 30px
+        list.setBackground(Color.WHITE);
+        list.setSelectionBackground(PRIMARY_COLOR);
+        list.setSelectionForeground(Color.WHITE);
+        list.setBorder(new EmptyBorder(5, 5, 5, 5));
+    }
+    // ************************************************************************************** //
 }
