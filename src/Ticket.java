@@ -81,7 +81,7 @@ public class Ticket {
     // Méthode toString pour afficher les infos simples sur le ticket
     @Override
     public String toString() {
-        return "Ticket "+ ticketID + " [" + title + "] " + description.toString();
+        return "Ticket "+ ticketID + " [" + title + "]";
     }
 
     // Méthodes spécifiques au ticket

@@ -18,7 +18,7 @@ public class TicketManager {
         this.commentManager = new commentManager();
         this.assignationManager = new AssignationManager();
         this.descriptionManager = new descriptionManager();
-        this.PDFexporter = new pdfExporter();
+        this.PDFexporter = new pdfExporter(descriptionManager);
     }
 
     // ============= GESTION DES TICKETS =============
@@ -109,6 +109,40 @@ public class TicketManager {
         }
 
         return userTickets;
+    }
+
+    // Obtient les tickets par statut et utilisateur
+    public List<Ticket> getTicketsByStatusUser(String status, User user) {
+        if (user == null || status == null || status.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Filtrer les tickets par statut ET utilisateur
+        List<Ticket> filteredTickets = new ArrayList<>();
+        for (Ticket ticket : allTickets) {
+            if (ticket.getStatus() != null && ticket.getStatus().equalsIgnoreCase(status)) {
+                if (ticket.getAssignedUserId() == user.getUserID()) {
+                    filteredTickets.add(ticket);
+                }
+            }
+        }
+        return filteredTickets;
+    }
+
+    // Obtient les tickets ouverts + ceux de l'utilisateur (pour les devs)
+    public List<Ticket> getTicketsDeveloper(User user) {
+        if (user == null) {
+            return new ArrayList<>();
+        }
+
+        // Filtrer les tickets par utilisateur + OUVERTS
+        List<Ticket> filteredTickets = new ArrayList<>();
+        for (Ticket ticket : allTickets) {
+            if (ticket.getStatus().equalsIgnoreCase("OUVERT") || ticket.getAssignedUserId() == user.getUserID()) {
+                filteredTickets.add(ticket);
+            }
+        }
+        return filteredTickets;
     }
 
     // ============= MODIFICATIONS VIA MANAGERS =============

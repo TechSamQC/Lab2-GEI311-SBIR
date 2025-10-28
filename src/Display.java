@@ -233,25 +233,46 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
             if (userList.getSelectedValue() != null)
             {
                 currentUser = (User) userList.getSelectedValue();
-                rafraichirListeTickets(); // Rafraîchir la liste des tickets affichés
+                filtrerTickets(); // Rafraîchir la liste des tickets affichés
                 viderFormulaireTicket(); // Vider le formulaire de ticket
             }
         });
 
-        // Événement pour le filtre par statut
-        filterStatusBox.addActionListener(e -> filtrerTicketsStatut());
+        // Événement pour le filtre par statut (utilise la méthode filtre générique)
+        filterStatusBox.addActionListener(e -> filtrerTickets());
     }
     // ********************************************************************************* //
 
     // ************************ Méthodes de gestion des tickets ************************ //
-    // Méthode pour rafraîchir la liste des tickets affichés
-    private void rafraichirListeTickets() {
-        // Si un utilisateur est sélectionné, autre qu'un admin ou un dev (peut assigner des tickets), obtenir la liste de tickets pour cet utilisateur
-        if (!currentUser.canAssignTickets() && currentUser != null) {
-            filtrerTicketsUser();
-            return;
+    // Méthode pour filtrer/rafraîchir la liste des tickets
+    private void filtrerTickets() {
+        String statutFiltre = (String) filterStatusBox.getSelectedItem(); // Récupérer le statut sélectionné
+        if (currentUser == null) {
+            ticketList.setListData(new Ticket[0]);
         }
-        ticketList.setListData(ticketManager.getAllTickets().toArray(new Ticket[0])); // Afficher tous les tickets
+        // Sinon si le statut est "TOUS"
+        else if (statutFiltre.equals("TOUS")) {
+            // Si le user sélectionné est un admin ou null, on veut tous les tickets
+            if (currentUser.isAdmin()) {
+                ticketList.setListData(ticketManager.getAllTickets().toArray(new Ticket[0])); // Afficher tous les tickets
+            }
+            // Si ce n'est pas un Admin, mais qu'il peut assigner des tickets (developeur)
+            else if (currentUser.canAssignTickets()) {
+                ticketList.setListData(ticketManager.getTicketsDeveloper(currentUser).toArray(new Ticket[0])); // Afficher tous les tickets du developpeur (ouvert et les siens)
+            }
+            // Sinon, c'est un utilisateur, filtrer par utilisateur
+            else {
+                ticketList.setListData(ticketManager.getTicketsByUser(currentUser).toArray(new Ticket[0])); // Met à jour la liste des tickets affichés selon le user connecté
+            }
+        }
+        // Sinon si le statut demandé est "OUVERT" et que le user est un dev ou un admin, ou si c'est un admin, récupérer tous les tickets selon le statut
+        else if ((statutFiltre.equals("OUVERT") && currentUser.canAssignTickets()) || currentUser.isAdmin()) {
+            ticketList.setListData(ticketManager.getTicketsByStatus(statutFiltre).toArray(new Ticket[0])); // Met à jour la liste des tickets affichés selon le filtre
+        }
+        // Sinon récupérer les tickets de l'utilisateur correspondant selon le statut
+        else {
+            ticketList.setListData(ticketManager.getTicketsByStatusUser(statutFiltre, currentUser).toArray(new Ticket[0]));
+        }
     }
 
     // Méthode pour vider le formulaire de ticket
@@ -377,7 +398,7 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
                     JOptionPane.INFORMATION_MESSAGE);
             
                 // Rafraîchir la liste des tickets
-                rafraichirListeTickets();
+                filtrerTickets();
                 
                 // Vider le formulaire
                 viderFormulaireTicket();
@@ -548,7 +569,7 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
                     JOptionPane.INFORMATION_MESSAGE);
 
             // Rafraîchir la liste des tickets
-            rafraichirListeTickets();
+            filtrerTickets();
 
             // Vider le formulaire
             viderFormulaireTicket();
@@ -699,22 +720,6 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         }
     }
 
-    // Méthode pour filtrer les tickets par statut
-    private void filtrerTicketsStatut() {
-        String statutFiltre = (String) filterStatusBox.getSelectedItem(); // Récupérer le statut sélectionné
-        // Si le filtre est "TOUS", afficher tous les tickets
-        if (statutFiltre.equals("TOUS")) {
-            ticketList.setListData(ticketManager.getAllTickets().toArray(new Ticket[0])); // Afficher tous les tickets
-            return;
-        }
-        ticketList.setListData(ticketManager.getTicketsByStatus(statutFiltre).toArray(new Ticket[0])); // Met à jour la liste des tickets affichés selon le filtre
-    }
-
-    // Méthode pour filtrer les tickets par utilisateur connecté
-    private void filtrerTicketsUser() {
-        ticketList.setListData(ticketManager.getTicketsByUser(currentUser).toArray(new Ticket[0])); // Met à jour la liste des tickets affichés selon le user connecté
-    }
-
     // Méthode pour désassigner l'utilisateur d'un ticket
     private void desassignerUtilisateur() {
         // SI aucun ticket sélectionné, afficher un message d'erreur
@@ -739,7 +744,7 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
             JOptionPane.showMessageDialog(this, 
                 "Utilisateur désassigné avec succès du ticket #" + selectedTicket.getTicketID() + ".", 
                 "Succès", JOptionPane.INFORMATION_MESSAGE);
-            rafraichirListeTickets(); // Rafraîchir la liste des tickets pour refléter le changement
+            filtrerTickets(); // Rafraîchir la liste des tickets pour refléter le changement
         } else {
             // SI la désassignation a échoué, afficher un message d'erreur
             JOptionPane.showMessageDialog(this, 
@@ -837,7 +842,7 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
                 for (Ticket t : ticketManager.getTicketsByUser(currentUser)) {
                     ticketManager.unassignTicket(t.getTicketID(), allUsers.get(0));
                 }
-                rafraichirListeTickets(); // Rafraîchir la liste des tickets pour refléter les changements
+                filtrerTickets(); // Rafraîchir la liste des tickets pour refléter les changements
             }
             
             // Supprimer l'utilisateur de la liste
