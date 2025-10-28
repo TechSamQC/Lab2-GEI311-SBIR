@@ -18,7 +18,7 @@ public class TicketManager {
         this.commentManager = new commentManager();
         this.assignationManager = new AssignationManager();
         this.descriptionManager = new descriptionManager();
-        this.PDFexporter = new pdfExporter(descriptionManager);
+        this.PDFexporter = new pdfExporter(descriptionManager, commentManager);
     }
 
     // ============= GESTION DES TICKETS =============
@@ -313,13 +313,14 @@ public class TicketManager {
     }
 
     // Exporte un ticket en PDF
-    public boolean exportTicketToPDF(int ticketID, String filePath) {
+    public boolean exportTicketToPDF(int ticketID, String filePath, User assignatedUser) {
         Ticket ticket = getTicket(ticketID);
+        // SI le ticket est null, afficher un erreur
         if (ticket == null) {
             System.out.println("Erreur: Ticket #" + ticketID + " introuvable.");
             return false;
         }
-        PDFexporter.exportTicketToPDF(ticket, filePath);
+        PDFexporter.exportTicketToPDF(ticket, filePath, assignatedUser); // APPEL du PDF exporter
         return true;
     }
 
