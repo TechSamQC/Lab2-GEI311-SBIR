@@ -64,7 +64,7 @@ public class descriptionManager {
             return false;
         }
 
-        description.addImagePath(imagePath);
+        description.addImagePaths(imagePath);
         System.out.println("Image ajoutée à la description: " + imagePath);
         return true;
     }
@@ -99,7 +99,7 @@ public class descriptionManager {
             return false;
         }
 
-        boolean removed = description.removeImagePath(imagePath);
+        boolean removed = description.removeImagePaths(imagePath);
         if (removed) {
             System.out.println("Image retirée de la description: " + imagePath);
         } else {

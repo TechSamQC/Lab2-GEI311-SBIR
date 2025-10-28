@@ -39,20 +39,20 @@ public class Description {
     }
 
     // Méthodes pour gérer les images
-    public void addImagePath(String path) {
+    public void addImagePaths(String path) {
         if (path != null && !path.trim().isEmpty()) {
             imagePaths.add(path);
         }
     }
 
-    public boolean removeImagePath(String path) {
+    public boolean removeImagePaths(String path) {
         boolean removed = imagePaths.remove(path);
         if (removed) {
         }
         return removed;
     }
 
-    public void clearImages() {
+    public void clearImagePaths() {
         if (!imagePaths.isEmpty()) {
             imagePaths.clear();
         }
@@ -103,9 +103,6 @@ public class Description {
         } else {
             summary.append("Aucun texte");
         }
-        
-        summary.append(" | Images: ").append(imagePaths.size());
-        summary.append(" | Vidéos: ").append(videoPaths.size());
         
         return summary.toString();
     }

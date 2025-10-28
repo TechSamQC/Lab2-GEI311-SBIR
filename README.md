@@ -4,6 +4,8 @@
 
 Système complet de gestion de tickets (Service Bureau Issue Reporting) développé en Java. Ce système permet de créer, assigner, suivre et gérer des tickets de support avec différents niveaux de priorité et des workflows de statuts.
 
+Cette version inclut une **interface** intuitive pour l'utilisateur.
+
 ## Architecture du Système
 
 Le système est organisé autour de **trois piliers principaux** :
