@@ -43,7 +43,7 @@ public class PriorityManager {
     }
 
     // Vérifie si l'utilisateur peut changer la priorité
-    private boolean canUserChangePriority(User requester, Ticket ticket) {
+    public boolean canUserChangePriority(User requester, Ticket ticket) {
         if (requester == null || ticket == null) {
             return false;
         }
