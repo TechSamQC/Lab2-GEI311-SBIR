@@ -13,6 +13,13 @@ Le système est organisé autour de **trois piliers principaux** :
 2. **Gestion des utilisateurs de base** : Création, suppression et permissions de modification de tickets
 3. **Export en PDF** : Exportation en PDF des tickets et de tous ses informations
 
+## Versions
+
+Prendre note qu'il y a trois branches principales dans ce projet. 
+    1. La V1 est la partie 1 du laboratoire 2.
+    2. La V2 est la partie 2 du laboratoire 2.
+    3. Le main est la finalité du projet (laboratoire 3).
+
 ## Auteurs
 
 Projet développé pour le cours GEI311 - Architecture Logicielle  
