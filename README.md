@@ -15,7 +15,7 @@ Le système est organisé autour de **trois piliers principaux** :
 
 ## Versions
 
-Prendre note qu'il y a trois branches principales dans ce projet. 
+Prendre note qu'il y a trois branches principales dans ce projet :
     1. La V1 est la partie 1 du laboratoire 2.
     2. La V2 est la partie 2 du laboratoire 2.
     3. Le main est la finalité du projet (laboratoire 3).
