@@ -464,48 +464,57 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
 
             boolean success; // Variable pour suivre le succès des opérations
 
-            // Mettre à jour l'utilisateur assigné
-            if (utilisateurAssigne.getUserID() != selectedTicket.getAssignedUserId()) {
-                if (!currentUser.canAssignTickets()) {
-                    // Avertir que l'utilisateur n'a pas les droits pour assigner des tickets
-                    JOptionPane.showMessageDialog(this, 
-                        "Vous n'avez pas les droits nécessaires pour assigner un utilisateur à ce ticket.", 
-                        "Droits insuffisants", JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-                // Mettre à jour l'utilisateur assigné via le ticketManager
-                success = ticketManager.assignTicket(selectedTicket.getTicketID(), utilisateurAssigne, currentUser);
-                if (!success) {
-                    // Afficher un message d'erreur si la mise à jour de l'utilisateur assigné a échoué
-                    JOptionPane.showMessageDialog(this, 
-                        "Erreur lors de la mise à jour de l'utilisateur assigné.", 
-                        "Erreur", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                else {
-                    // Si l'utilisateur assigné a changé, le statut devient automatiquement "ASSIGNÉ", avertir l'utilisateur
-                    JOptionPane.showMessageDialog(this, 
-                        "L'utilisateur assigné a été modifié. Le statut du ticket est automatiquement mis à jour à 'ASSIGNÉ'.", 
-                        "Information", JOptionPane.INFORMATION_MESSAGE);
-                }
-            } else if (statut != selectedTicket.getStatus()) { // Mettre à jour le statut seulement si l'utilisateur assigné n'a pas changé (un ticket assigné change automatiquement de statut).
-                if (statut == "TERMINÉ" && !currentUser.canCloseTickets()) {
-                    // Avertir que l'utilisateur n'a pas les droits pour fermer le ticket
-                    JOptionPane.showMessageDialog(this, 
-                        "Vous n'avez pas les droits nécessaires pour fermer ce ticket.", 
-                        "Droits insuffisants", JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
-                // Mettre à jour le statut via le ticketManager
-                success = ticketManager.updateTicketStatus(selectedTicket.getTicketID(), statut, currentUser);
-                if (!success) {
-                    // Afficher un message d'erreur si la mise à jour du statut a échoué
-                    JOptionPane.showMessageDialog(this, 
-                        "Erreur lors de la mise à jour du statut.", 
-                        "Erreur", JOptionPane.ERROR_MESSAGE);
-                    return;
+            // Mettre à jour l'utilisateur assigné si le champ n'est pas null
+            if (utilisateurAssigne != null) {
+                if (utilisateurAssigne.getUserID() != selectedTicket.getAssignedUserId()) {
+                    if (!currentUser.canAssignTickets()) {
+                        // Avertir que l'utilisateur n'a pas les droits pour assigner des tickets
+                        JOptionPane.showMessageDialog(this, 
+                            "Vous n'avez pas les droits nécessaires pour assigner un utilisateur à ce ticket.", 
+                            "Droits insuffisants", JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+                    // Mettre à jour l'utilisateur assigné via le ticketManager
+                    success = ticketManager.assignTicket(selectedTicket.getTicketID(), utilisateurAssigne, currentUser);
+                    if (!success) {
+                        // Afficher un message d'erreur si la mise à jour de l'utilisateur assigné a échoué
+                        JOptionPane.showMessageDialog(this, 
+                            "Erreur lors de la mise à jour de l'utilisateur assigné.", 
+                            "Erreur", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    else {
+                        // Si l'utilisateur assigné a changé, le statut devient automatiquement "ASSIGNÉ", avertir l'utilisateur
+                        JOptionPane.showMessageDialog(this, 
+                            "L'utilisateur assigné a été modifié. Le statut du ticket est automatiquement mis à jour à 'ASSIGNÉ'.", 
+                            "Information", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                } else if (statut != selectedTicket.getStatus()) { // Mettre à jour le statut seulement si l'utilisateur assigné n'a pas changé (un ticket assigné change automatiquement de statut).
+                    if (statut == "TERMINÉ" && !currentUser.canCloseTickets()) {
+                        // Avertir que l'utilisateur n'a pas les droits pour fermer le ticket
+                        JOptionPane.showMessageDialog(this, 
+                            "Vous n'avez pas les droits nécessaires pour fermer ce ticket.", 
+                            "Droits insuffisants", JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+                    // Mettre à jour le statut via le ticketManager
+                    success = ticketManager.updateTicketStatus(selectedTicket.getTicketID(), statut, currentUser);
+                    if (!success) {
+                        // Afficher un message d'erreur si la mise à jour du statut a échoué
+                        JOptionPane.showMessageDialog(this, 
+                            "Erreur lors de la mise à jour du statut.", 
+                            "Erreur", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
                 }
             }
+            else { //Si le champ utilisateurAssigne est null, il faut prévenir que le statut et commentaires ne seront pas pris en compte
+                JOptionPane.showMessageDialog(this, 
+                "Aucun utilisateur assigné. Le statut du ticket restera à 'OUVERT' et aucun commentaire ne sera ajouté.", 
+                "Information", JOptionPane.INFORMATION_MESSAGE);
+                commentaire = "";
+            }
+            
 
             // Mettre à jour la description
             if (!description.isEmpty() && !description.equals(descManager.getDescriptionSummary(selectedTicket.getDescription()))) {
@@ -551,14 +560,22 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
 
             // Mettre à jour la priorité
             if (priorite != selectedTicket.getPriority()) {
-                // Mettre à jour la priorité via le ticketManager
-                success = ticketManager.updateTicketPriority(selectedTicket.getTicketID(), priorite, currentUser);
-                if (!success) {
-                    // Afficher un message d'erreur si la mise à jour de la priorité a échoué
+                if (priorityManager.canUserChangePriority(currentUser, selectedTicket)) { // SI l'utilisateur peut changer la priorité
+                    // Mettre à jour la priorité via le ticketManager
+                    success = ticketManager.updateTicketPriority(selectedTicket.getTicketID(), priorite, currentUser);
+                    if (!success) {
+                        // Afficher un message d'erreur si la mise à jour de la priorité a échoué
+                        JOptionPane.showMessageDialog(this, 
+                            "Erreur lors de la mise à jour de la priorité.", 
+                            "Erreur", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
+                else {
+                    // Avertir que l'utilisateur n'a pas les droits pour changer la priorité de ce ticket
                     JOptionPane.showMessageDialog(this, 
-                        "Erreur lors de la mise à jour de la priorité.", 
-                        "Erreur", JOptionPane.ERROR_MESSAGE);
-                    return;
+                        "Vous n'avez pas les droits nécessaires pour changer la priorité de ce ticket.", 
+                        "Droits insuffisants", JOptionPane.WARNING_MESSAGE);
                 }
             }
 
@@ -596,8 +613,21 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
             fileChooser.setSelectedFile(new File("ticket_" + selectedTicket.getTicketID() + ".pdf"));
             int result = fileChooser.showSaveDialog(null);
             if (result != JFileChooser.APPROVE_OPTION) return; // Si l'utilisateur n'approuve pas, on annule
+
+            // Récuperer l'id de l'utilisateur assigné
+            int assignedUserId = selectedTicket.getAssignedUserId();
+            User assignatedUser = null; // SI l'utilisateur assigné est trouvé, ça donnera un utilisateur, sinon on enverra null.
+
+            // Parcourir la liste des utilisateurs pour trouver l'utilisateur assigné s'il existe et récuperer l'objet user
+            for (User user : allUsers) {
+                if (user.getUserID() == assignedUserId) {
+                    assignatedUser = user;
+                    break;
+                }
+            }
+
             // Export en pdf du ticket avec le chemin choisi
-            ticketManager.exportTicketToPDF(selectedTicket.getTicketID(), fileChooser.getSelectedFile().getAbsolutePath());
+            ticketManager.exportTicketToPDF(selectedTicket.getTicketID(), fileChooser.getSelectedFile().getAbsolutePath(), assignatedUser);
 
         } catch (Exception ex) {
             // Afficher un message d'erreur en cas d'exception d'exécution
@@ -639,7 +669,8 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
             panel.setLayout(new GridLayout());
 
             // Pour tous les images dans la description du ticket, les récuperer et les ajouter au paneau
-            for (ImageIcon icon : selectedTicket.getDescription().getImages()) {
+            for (String path : selectedTicket.getDescription().getImagePaths()) {
+                ImageIcon icon = new ImageIcon(path);
                 JLabel label = new JLabel(icon);
                 panel.add(label);
             }
