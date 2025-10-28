@@ -1,5 +1,3 @@
-import javax.swing.ImageIcon;
-
 public class descriptionManager {
     private DescriptionValidator descriptionValidator;
 
@@ -60,13 +58,13 @@ public class descriptionManager {
             return false;
         }
 
-        int currentCount = description.getImages().size();
+        int currentCount = description.getImagePaths().size();
         if (!descriptionValidator.validateImageCount(currentCount + 1)) {
             System.out.println("Erreur: Nombre maximum d'images atteint.");
             return false;
         }
 
-        description.addImage(imagePath);
+        description.addImagePaths(imagePath);
         System.out.println("Image ajoutée à la description: " + imagePath);
         return true;
     }
@@ -95,15 +93,15 @@ public class descriptionManager {
     }
 
     // Retire une image d'une description
-    public boolean removeImageFromDescription(Description description, ImageIcon image) {
+    public boolean removeImageFromDescription(Description description, String imagePath) {
         if (description == null) {
             System.out.println("Erreur: La description est null.");
             return false;
         }
 
-        boolean removed = description.removeImage(image);
+        boolean removed = description.removeImagePaths(imagePath);
         if (removed) {
-            System.out.println("Image retirée de la description: " + image);
+            System.out.println("Image retirée de la description: " + imagePath);
         } else {
             System.out.println("Erreur: Image non trouvée dans la description.");
         }
@@ -157,7 +155,7 @@ public class descriptionManager {
         StringBuilder summary = new StringBuilder();
         summary.append("--- Résumé de la description ---\n");
         summary.append("Texte: ").append(description.getTextContent()).append("\n");
-        summary.append("Images: ").append(description.getImages().size()).append("\n");
+        summary.append("Images: ").append(description.getImagePaths()).append("\n");
         summary.append("Vidéos: ").append(description.getVideoPaths());
 
         return summary.toString();

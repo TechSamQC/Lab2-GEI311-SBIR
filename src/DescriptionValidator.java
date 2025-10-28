@@ -34,7 +34,7 @@ public class DescriptionValidator {
         }
         
         return validateTextContent(description.getTextContent()) &&
-               validateImageCount(description.getImages().size()) &&
+               validateImageCount(description.getImagePaths().size()) &&
                validateVideoCount(description.getVideoPaths().size()) &&
                validateAllVideoPaths(description.getVideoPaths());
     }
@@ -126,7 +126,7 @@ public class DescriptionValidator {
         }
 
         // Vérification du nombre d'images
-        int imageCount = description.getImages().size();
+        int imageCount = description.getImagePaths().size();
         if (!validateImageCount(imageCount)) {
             errors.add("Nombre d'images invalide: " + imageCount + " (maximum: " + maxImagesCount + ")");
         }

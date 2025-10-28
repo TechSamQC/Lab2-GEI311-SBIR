@@ -1,23 +1,22 @@
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.ImageIcon;
 
 public class Description {
     private String textContent;
-    private List<ImageIcon> images;
+    private List<String> imagePaths;
     private List<String> videoPaths;
 
     // Constructeur par défaut
     public Description() {
         this.textContent = "";
-        this.images = new ArrayList<>();
+        this.imagePaths = new ArrayList<>();
         this.videoPaths = new ArrayList<>();
     }
 
     // Constructeur avec texte
     public Description(String textContent) {
         this.textContent = textContent != null ? textContent : "";
-        this.images = new ArrayList<>();
+        this.imagePaths = new ArrayList<>();
         this.videoPaths = new ArrayList<>();
     }
 
@@ -26,8 +25,8 @@ public class Description {
         return textContent;
     }
 
-    public List<ImageIcon> getImages() {
-        return new ArrayList<>(images);
+    public List<String> getImagePaths() {
+        return new ArrayList<>(imagePaths);
     }
 
     public List<String> getVideoPaths() {
@@ -40,23 +39,22 @@ public class Description {
     }
 
     // Méthodes pour gérer les images
-    public void addImage(String path) {
+    public void addImagePaths(String path) {
         if (path != null && !path.trim().isEmpty()) {
-            ImageIcon icon = new ImageIcon(path);
-            images.add(icon);
+            imagePaths.add(path);
         }
     }
 
-    public boolean removeImage(ImageIcon image) {
-        boolean removed = images.remove(image);
+    public boolean removeImagePaths(String path) {
+        boolean removed = imagePaths.remove(path);
         if (removed) {
         }
         return removed;
     }
 
-    public void clearImages() {
-        if (!images.isEmpty()) {
-            images.clear();
+    public void clearImagePaths() {
+        if (!imagePaths.isEmpty()) {
+            imagePaths.clear();
         }
     }
 
@@ -86,7 +84,7 @@ public class Description {
     }
 
     public boolean hasImages() {
-        return !images.isEmpty();
+        return !imagePaths.isEmpty();
     }
 
     public boolean hasVideos() {
