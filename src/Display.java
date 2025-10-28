@@ -641,6 +641,8 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         try {
             // Filechooser pour choisir l'image.
             JFileChooser fileChooser = new JFileChooser();
+            // S'assurer que le FileChooser démarre dans le répertoire utilisateur (pas dans /media)
+            fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
             int result = fileChooser.showOpenDialog(null);
 
             // Si le résultat est l'approbation, on peut récuperer le fichier.
@@ -678,7 +680,14 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
             // Ajouter le panel (le rendre scrollable) à un JFrame pour afficher les images
             JFrame frame = new JFrame("Images dans la description");
             frame.add(new JScrollPane(panel)); // scrollable si trop d'images
-            frame.pack();
+            
+            // Rendre la fenêtre responsive - adapter à la taille de l'écran
+            Toolkit toolkit = Toolkit.getDefaultToolkit();
+            Dimension screenSize = toolkit.getScreenSize();
+            int maxWidth = (int) (screenSize.width * 0.9); // 90% de la largeur de l'écran
+            int maxHeight = (int) (screenSize.height * 0.9); // 90% de la hauteur de l'écran
+            frame.setSize(Math.min(maxWidth, 1200), Math.min(maxHeight, 800));
+            frame.setLocationRelativeTo(null); // Centrer la fenêtre
             frame.setVisible(true);
         } catch (Exception ex) {
             // Afficher un message d'erreur en cas d'exception d'exécution
@@ -692,6 +701,8 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
         try {
             // Filechooser pour choisir la vidéo.
             JFileChooser fileChooser = new JFileChooser();
+            // S'assurer que le FileChooser démarre dans le répertoire utilisateur (pas dans /media)
+            fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
             int result = fileChooser.showOpenDialog(null);
 
             // Si le résultat est l'approbation, on peut récuperer le fichier.
@@ -732,7 +743,14 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
             // Ajouter le panel (le rendre scrollable) à un JFrame pour afficher les vidéos
             JFrame frame = new JFrame("Vidéos dans la description");
             frame.add(new JScrollPane(panel)); // scrollable si trop d'images
-            frame.pack();
+            
+            // Rendre la fenêtre responsive - adapter à la taille de l'écran
+            Toolkit toolkit = Toolkit.getDefaultToolkit();
+            Dimension screenSize = toolkit.getScreenSize();
+            int maxWidth = (int) (screenSize.width * 0.9); // 90% de la largeur de l'écran
+            int maxHeight = (int) (screenSize.height * 0.9); // 90% de la hauteur de l'écran
+            frame.setSize(Math.min(maxWidth, 800), Math.min(maxHeight, 600));
+            frame.setLocationRelativeTo(null); // Centrer la fenêtre
             frame.setVisible(true);
         } catch (Exception ex) {
             // Afficher un message d'erreur en cas d'exception d'exécution
