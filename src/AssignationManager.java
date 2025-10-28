@@ -63,6 +63,12 @@ public class AssignationManager {
             return false;
         }
 
+        // Un développeur ne peut PAS assigner un ticket à un admin
+        if (requestedBy.getRole().equalsIgnoreCase("DEVELOPER") && user.isAdmin()) {
+            System.out.println("Erreur: Un développeur ne peut pas assigner un ticket à un administrateur.");
+            return false;
+        }
+
         return true;
     }
 }

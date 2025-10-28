@@ -99,22 +99,19 @@ public class statusManager {
             return true;
         }
 
+        // Les développeurs peuvent changer les statuts SAUF passer de VALIDATION à TERMINÉ
         if (requester.canAssignTickets()) {
-            // Les développeurs peuvent changer les statuts sauf terminer
-            if (newStatus.equalsIgnoreCase("TERMINÉ")) {
+            // Bloquer la transition de VALIDATION vers TERMINÉ (seul admin peut le faire)
+            if (ticket.getStatus().equalsIgnoreCase("VALIDATION") && 
+                newStatus.equalsIgnoreCase("TERMINÉ")) {
+                System.out.println("Erreur: Seul un administrateur peut passer un ticket de VALIDATION à TERMINÉ.");
                 return false;
             }
             return true;
         }
 
-        // Les utilisateurs réguliers peuvent seulement mettre un ticket assigné en VALIDATION
-        if (ticket.getAssignedUserId() == requester.getUserID() && 
-            ticket.getStatus().equalsIgnoreCase("ASSIGNÉ") && 
-            newStatus.equalsIgnoreCase("VALIDATION")) {
-            return true;
-        }
-
-        // Sinon, refuser
+        // Les utilisateurs réguliers ne peuvent PAS modifier le statut du tout
+        System.out.println("Erreur: Les utilisateurs sans privilèges ne peuvent pas modifier le statut des tickets.");
         return false;
     }
 

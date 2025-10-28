@@ -155,8 +155,8 @@ public class descriptionManager {
         StringBuilder summary = new StringBuilder();
         summary.append("--- Résumé de la description ---\n");
         summary.append("Texte: ").append(description.getTextContent()).append("\n");
-        summary.append("Images: ").append(description.getImagePaths()).append("\n");
-        summary.append("Vidéos: ").append(description.getVideoPaths());
+        summary.append("Images : ").append(description.getImagePaths().size()).append("\n");
+        summary.append("Vidéos : ").append(description.getVideoPaths().size());
 
         return summary.toString();
     }
