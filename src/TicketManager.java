@@ -297,14 +297,25 @@ public class TicketManager {
             return false;
         }
 
-        if (!user.canCloseTickets()) {
+        // Si le ticket est assigné
+        if (ticket.isAssigned()) {
+            //SI l'utilisateur ne peu fermer le ticket, retourner false
+            if (!user.canCloseTickets()) {
             System.out.println("Erreur: Vous n'avez pas la permission de terminer un ticket.");
             return false;
-        }
-
-        if (ticket.isAssigned()) {
+            }
+            //Sinon procéder à la désassignation
             unassignTicket(ticketID, user);
         }
+        else { // Si le ticket n'est pas assigné
+            // Si l'utilsiateur n'est pas un developpeur (peut assignmer des tickets), retourner false
+            if (!user.canAssignTickets()) {
+            System.out.println("Erreur: Vous n'avez pas la permission de terminer un ticket.");
+            return false;
+            }
+        }
+
+        // Si le ticket est updater avec succès, retourner true
         if (statusManager.updateStatus(ticket, "TERMINÉ", user)) {
             return true;
         }
