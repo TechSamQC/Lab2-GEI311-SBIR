@@ -427,6 +427,12 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
                     "Erreur", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+            // SI le ticket est terminé, aucune modification possible !
+            else if (selectedTicket.getStatus().equalsIgnoreCase("TERMINÉ")) {
+                JOptionPane.showMessageDialog(this, "Ce ticket est terminé et ne peut pas être modifié !", 
+                    "Erreur", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
             // Récupération des champs
             String description = descriptionArea.getText().trim(); // Description du ticket
@@ -489,7 +495,8 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
                             "L'utilisateur assigné a été modifié. Le statut du ticket est automatiquement mis à jour à 'ASSIGNÉ'.", 
                             "Information", JOptionPane.INFORMATION_MESSAGE);
                     }
-                } else if (statut != selectedTicket.getStatus()) { // Mettre à jour le statut seulement si l'utilisateur assigné n'a pas changé (un ticket assigné change automatiquement de statut).
+                } 
+                else if (statut != selectedTicket.getStatus()) { // Mettre à jour le statut seulement si l'utilisateur assigné n'a pas changé (un ticket assigné change automatiquement de statut).
                     if (statut == "TERMINÉ" && !currentUser.canCloseTickets()) {
                         // Avertir que l'utilisateur n'a pas les droits pour fermer le ticket
                         JOptionPane.showMessageDialog(this, 
@@ -509,9 +516,26 @@ public class Display extends JFrame{ // Classe pour l'affichage des tickets et i
                 }
             }
             else { //Si le champ utilisateurAssigne est null, il faut prévenir que le statut et commentaires ne seront pas pris en compte
-                JOptionPane.showMessageDialog(this, 
-                "Aucun utilisateur assigné. Le statut du ticket restera à 'OUVERT' et aucun commentaire ne sera ajouté.", 
-                "Information", JOptionPane.INFORMATION_MESSAGE);
+                if (statut == "TERMINÉ" && currentUser.canAssignTickets()) { //SI le statut est à terminer, qu'il n'y a personne d'assigné au ticket, il faut vérifier si l'utilisateur actuelle est un admin ou un dev
+                    //SI c'est le cas, il faut changer le statut à "TERMINÉ"
+                    // Mettre à jour le statut via le ticketManager
+                    success = ticketManager.updateTicketStatus(selectedTicket.getTicketID(), statut, currentUser);
+                    if (!success) {
+                        // Afficher un message d'erreur si la mise à jour du statut a échoué
+                        JOptionPane.showMessageDialog(this, 
+                            "Erreur lors de la mise à jour du statut.", 
+                            "Erreur", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    JOptionPane.showMessageDialog(this, 
+                    "Ticket terminé, aucun commentaire ne sera ajouté.", 
+                    "Information", JOptionPane.INFORMATION_MESSAGE);
+                }
+                else {
+                    JOptionPane.showMessageDialog(this, 
+                    "Aucun utilisateur assigné. Le statut du ticket restera à 'OUVERT' et aucun commentaire ne sera ajouté.", 
+                    "Information", JOptionPane.INFORMATION_MESSAGE);
+                }
                 commentaire = "";
             }
             
