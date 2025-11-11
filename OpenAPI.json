@@ -1,0 +1,934 @@
+openapi: 3.0.3
+info:
+  title: Système de Gestion de Tickets (SBIR) - API REST
+  description: |
+    API REST pour le système de gestion de tickets développé en Java. 
+    Ce système permet de créer, assigner, suivre et gérer des tickets de support 
+    avec différents niveaux de priorité et des workflows de statuts.
+    
+    **Architecture du Système:**
+    1. Gestion des tickets : Création, validation et cycle de vie des tickets
+    2. Gestion des utilisateurs : Création, suppression et permissions
+    3. Export en PDF : Exportation des tickets
+    
+    **Projet développé pour le cours GEI311: Architecture Logicielle**
+    
+    Auteurs: Il'aina Ratefinanahary et Samuel Brassard, UQAC Automne 2025
+  version: 4.0.0
+  contact:
+    name: SBIR
+    email: iratefinan@etu.uqac.ca
+  license:
+    name: Usage Éducatif Uniquement
+    url: https://github.com/TechSamQC/Lab2-GEI311-SBIR/tree/main
+
+servers:
+  - url: http://localhost:8080
+    description: Serveur de développement local
+
+tags:
+  - name: tickets
+    description: Opérations sur les tickets
+  - name: users
+    description: Opérations sur les utilisateurs
+  - name: comments
+    description: Gestion des commentaires
+  - name: export
+    description: Export de données
+
+paths:
+  /api/tickets:
+    get:
+      tags:
+        - tickets
+      summary: Liste tous les tickets
+      description: Retourne la liste complète de tous les tickets du système
+      operationId: getAllTickets
+      responses:
+        '200':
+          description: Liste des tickets récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    post:
+      tags:
+        - tickets
+      summary: Crée un nouveau ticket
+      description: Crée un nouveau ticket dans le système
+      operationId: createTicket
+      requestBody:
+        description: Données du ticket à créer
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketCreate'
+      responses:
+        '201':
+          description: Ticket créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tickets/{ticketId}:
+    get:
+      tags:
+        - tickets
+      summary: Récupère un ticket spécifique
+      description: Retourne les détails d'un ticket par son ID
+      operationId: getTicketById
+      parameters:
+        - name: ticketId
+          in: path
+          description: ID du ticket à récupérer
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Ticket trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '404':
+          description: Ticket non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    put:
+      tags:
+        - tickets
+      summary: Met à jour un ticket
+      description: Met à jour les informations d'un ticket existant
+      operationId: updateTicket
+      parameters:
+        - name: ticketId
+          in: path
+          description: ID du ticket à modifier
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        description: Nouvelles données du ticket
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketUpdate'
+      responses:
+        '200':
+          description: Ticket mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '404':
+          description: Ticket non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    delete:
+      tags:
+        - tickets
+      summary: Supprime un ticket
+      description: Supprime un ticket du système
+      operationId: deleteTicket
+      parameters:
+        - name: ticketId
+          in: path
+          description: ID du ticket à supprimer
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: Ticket supprimé avec succès
+        '404':
+          description: Ticket non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tickets/status/{status}:
+    get:
+      tags:
+        - tickets
+      summary: Récupère les tickets par statut
+      description: Retourne tous les tickets ayant un statut spécifique
+      operationId: getTicketsByStatus
+      parameters:
+        - name: status
+          in: path
+          description: Statut des tickets à récupérer
+          required: true
+          schema:
+            type: string
+            enum: [OUVERT, ASSIGNÉ, TERMINÉ]
+      responses:
+        '200':
+          description: Liste des tickets filtrés
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+
+  /api/tickets/priority/{priority}:
+    get:
+      tags:
+        - tickets
+      summary: Récupère les tickets par priorité
+      description: Retourne tous les tickets ayant une priorité spécifique
+      operationId: getTicketsByPriority
+      parameters:
+        - name: priority
+          in: path
+          description: Priorité des tickets à récupérer
+          required: true
+          schema:
+            type: string
+            enum: [BASSE, MOYENNE, HAUTE, CRITIQUE]
+      responses:
+        '200':
+          description: Liste des tickets filtrés
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+
+  /api/tickets/user/{userId}:
+    get:
+      tags:
+        - tickets
+      summary: Récupère les tickets d'un utilisateur
+      description: Retourne tous les tickets assignés à un utilisateur spécifique
+      operationId: getTicketsByUser
+      parameters:
+        - name: userId
+          in: path
+          description: ID de l'utilisateur
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Liste des tickets de l'utilisateur
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+
+  /api/tickets/search:
+    get:
+      tags:
+        - tickets
+      summary: Recherche des tickets par titre
+      description: Recherche des tickets dont le titre contient la chaîne spécifiée
+      operationId: searchTicketsByTitle
+      parameters:
+        - name: title
+          in: query
+          description: Titre ou partie du titre à rechercher
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Résultats de la recherche
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+
+  /api/tickets/unassigned:
+    get:
+      tags:
+        - tickets
+      summary: Récupère les tickets non assignés
+      description: Retourne tous les tickets ouverts qui ne sont pas encore assignés
+      operationId: getUnassignedTickets
+      responses:
+        '200':
+          description: Liste des tickets non assignés
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+
+  /api/tickets/critical:
+    get:
+      tags:
+        - tickets
+      summary: Récupère les tickets critiques
+      description: Retourne tous les tickets avec priorité CRITIQUE
+      operationId: getCriticalTickets
+      responses:
+        '200':
+          description: Liste des tickets critiques
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+
+  /api/tickets/{ticketId}/status:
+    put:
+      tags:
+        - tickets
+      summary: Modifie le statut d'un ticket
+      description: Met à jour le statut d'un ticket spécifique
+      operationId: updateTicketStatus
+      parameters:
+        - name: ticketId
+          in: path
+          description: ID du ticket
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [OUVERT, ASSIGNÉ, TERMINÉ]
+                requestedBy:
+                  type: integer
+                  format: int32
+                  description: ID de l'utilisateur effectuant la modification
+      responses:
+        '200':
+          description: Statut mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '400':
+          description: Statut invalide ou modification non autorisée
+        '404':
+          description: Ticket non trouvé
+
+  /api/tickets/{ticketId}/priority:
+    put:
+      tags:
+        - tickets
+      summary: Modifie la priorité d'un ticket
+      description: Met à jour la priorité d'un ticket spécifique
+      operationId: updateTicketPriority
+      parameters:
+        - name: ticketId
+          in: path
+          description: ID du ticket
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                priority:
+                  type: string
+                  enum: [BASSE, MOYENNE, HAUTE, CRITIQUE]
+                requestedBy:
+                  type: integer
+                  format: int32
+      responses:
+        '200':
+          description: Priorité mise à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '400':
+          description: Priorité invalide
+        '404':
+          description: Ticket non trouvé
+
+  /api/tickets/{ticketId}/assign:
+    put:
+      tags:
+        - tickets
+      summary: Assigne un ticket à un utilisateur
+      description: Assigne un ticket à un utilisateur spécifique
+      operationId: assignTicket
+      parameters:
+        - name: ticketId
+          in: path
+          description: ID du ticket
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: integer
+                  format: int32
+                  description: ID de l'utilisateur à qui assigner le ticket
+                assignedBy:
+                  type: integer
+                  format: int32
+                  description: ID de l'utilisateur effectuant l'assignation
+      responses:
+        '200':
+          description: Ticket assigné avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '400':
+          description: Assignation non autorisée
+        '404':
+          description: Ticket ou utilisateur non trouvé
+
+  /api/tickets/{ticketId}/unassign:
+    put:
+      tags:
+        - tickets
+      summary: Désassigne un ticket
+      description: Retire l'assignation d'un ticket
+      operationId: unassignTicket
+      parameters:
+        - name: ticketId
+          in: path
+          description: ID du ticket
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                requestedBy:
+                  type: integer
+                  format: int32
+      responses:
+        '200':
+          description: Ticket désassigné avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '404':
+          description: Ticket non trouvé
+
+  /api/tickets/{ticketId}/close:
+    put:
+      tags:
+        - tickets
+      summary: Ferme/termine un ticket
+      description: Marque un ticket comme terminé
+      operationId: closeTicket
+      parameters:
+        - name: ticketId
+          in: path
+          description: ID du ticket
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: integer
+                  format: int32
+                  description: ID de l'utilisateur fermant le ticket
+      responses:
+        '200':
+          description: Ticket fermé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '403':
+          description: Permission insuffisante
+        '404':
+          description: Ticket non trouvé
+
+  /api/tickets/{ticketId}/description:
+    put:
+      tags:
+        - tickets
+      summary: Met à jour la description d'un ticket
+      description: Modifie la description d'un ticket existant
+      operationId: updateTicketDescription
+      parameters:
+        - name: ticketId
+          in: path
+          description: ID du ticket
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Description'
+      responses:
+        '200':
+          description: Description mise à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '404':
+          description: Ticket non trouvé
+
+  /api/tickets/{ticketId}/comments:
+    get:
+      tags:
+        - comments
+      summary: Liste les commentaires d'un ticket
+      description: Retourne tous les commentaires associés à un ticket
+      operationId: getTicketComments
+      parameters:
+        - name: ticketId
+          in: path
+          description: ID du ticket
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Liste des commentaires
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '404':
+          description: Ticket non trouvé
+    
+    post:
+      tags:
+        - comments
+      summary: Ajoute un commentaire à un ticket
+      description: Ajoute un nouveau commentaire à un ticket assigné
+      operationId: addComment
+      parameters:
+        - name: ticketId
+          in: path
+          description: ID du ticket
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+                  description: Contenu du commentaire
+                authorId:
+                  type: integer
+                  format: int32
+                  description: ID de l'auteur du commentaire
+      responses:
+        '201':
+          description: Commentaire ajouté avec succès
+        '400':
+          description: Ticket non assigné ou terminé
+        '404':
+          description: Ticket non trouvé
+    
+    delete:
+      tags:
+        - comments
+      summary: Supprime tous les commentaires d'un ticket
+      description: Efface tous les commentaires associés à un ticket
+      operationId: clearComments
+      parameters:
+        - name: ticketId
+          in: path
+          description: ID du ticket
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: Commentaires supprimés avec succès
+        '404':
+          description: Ticket non trouvé
+
+  /api/users:
+    get:
+      tags:
+        - users
+      summary: Liste tous les utilisateurs
+      description: Retourne la liste complète des utilisateurs du système
+      operationId: getAllUsers
+      responses:
+        '200':
+          description: Liste des utilisateurs récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    
+    post:
+      tags:
+        - users
+      summary: Crée un nouvel utilisateur
+      description: Crée un nouvel utilisateur dans le système
+      operationId: createUser
+      requestBody:
+        description: Données de l'utilisateur à créer
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '201':
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/users/{userId}:
+    get:
+      tags:
+        - users
+      summary: Récupère un utilisateur spécifique
+      description: Retourne les détails d'un utilisateur par son ID
+      operationId: getUserById
+      parameters:
+        - name: userId
+          in: path
+          description: ID de l'utilisateur
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Utilisateur trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Utilisateur non trouvé
+    
+    put:
+      tags:
+        - users
+      summary: Met à jour un utilisateur
+      description: Met à jour les informations d'un utilisateur existant
+      operationId: updateUser
+      parameters:
+        - name: userId
+          in: path
+          description: ID de l'utilisateur
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: Utilisateur mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Utilisateur non trouvé
+    
+    delete:
+      tags:
+        - users
+      summary: Supprime un utilisateur
+      description: Supprime un utilisateur du système
+      operationId: deleteUser
+      parameters:
+        - name: userId
+          in: path
+          description: ID de l'utilisateur
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: Utilisateur supprimé avec succès
+        '404':
+          description: Utilisateur non trouvé
+
+  /api/export/tickets/{ticketId}/pdf:
+    get:
+      tags:
+        - export
+      summary: Exporte un ticket en PDF
+      description: Génère et télécharge un fichier PDF contenant toutes les informations du ticket
+      operationId: exportTicketToPDF
+      parameters:
+        - name: ticketId
+          in: path
+          description: ID du ticket à exporter
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: userId
+          in: query
+          description: ID de l'utilisateur demandant l'export
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: PDF généré avec succès
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Ticket non trouvé
+
+components:
+  schemas:
+    Ticket:
+      type: object
+      properties:
+        ticketID:
+          type: integer
+          format: int32
+          description: Identifiant unique du ticket
+        title:
+          type: string
+          description: Titre du ticket
+        description:
+          $ref: '#/components/schemas/Description'
+        status:
+          type: string
+          enum: [OUVERT, ASSIGNÉ, TERMINÉ]
+          description: Statut actuel du ticket
+        priority:
+          type: string
+          enum: [BASSE, MOYENNE, HAUTE, CRITIQUE]
+          description: Niveau de priorité du ticket
+        creationDate:
+          type: string
+          format: date
+          description: Date de création du ticket
+        updateDate:
+          type: string
+          format: date
+          description: Date de dernière modification
+        assignedUserId:
+          type: integer
+          format: int32
+          description: ID de l'utilisateur assigné (0 si non assigné)
+        comments:
+          type: array
+          items:
+            type: string
+          description: Liste des commentaires
+      required:
+        - ticketID
+        - title
+        - status
+        - priority
+    
+    TicketCreate:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Titre du ticket
+        description:
+          $ref: '#/components/schemas/Description'
+        priority:
+          type: string
+          enum: [BASSE, MOYENNE, HAUTE, CRITIQUE]
+          description: Niveau de priorité
+      required:
+        - title
+        - priority
+    
+    TicketUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Nouveau titre du ticket
+        priority:
+          type: string
+          enum: [BASSE, MOYENNE, HAUTE, CRITIQUE]
+    
+    Description:
+      type: object
+      properties:
+        textContent:
+          type: string
+          description: Contenu textuel de la description
+        imagePaths:
+          type: array
+          items:
+            type: string
+          description: Chemins vers les images attachées
+        videoPaths:
+          type: array
+          items:
+            type: string
+          description: Chemins vers les vidéos attachées
+    
+    User:
+      type: object
+      properties:
+        userID:
+          type: integer
+          format: int32
+          description: Identifiant unique de l'utilisateur
+        name:
+          type: string
+          description: Nom complet de l'utilisateur
+        email:
+          type: string
+          format: email
+          description: Adresse email
+        role:
+          type: string
+          enum: [ADMIN, DEVELOPER, USER]
+          description: Rôle de l'utilisateur dans le système
+      required:
+        - userID
+        - name
+        - email
+        - role
+    
+    UserCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Nom complet
+        email:
+          type: string
+          format: email
+          description: Adresse email
+        role:
+          type: string
+          enum: [ADMIN, DEVELOPER, USER]
+          description: Rôle
+      required:
+        - name
+        - email
+        - role
+    
+    UserUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [ADMIN, DEVELOPER, USER]
+    
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          description: Code d'erreur
+        message:
+          type: string
+          description: Message d'erreur descriptif
+        details:
+          type: string
+          description: Détails supplémentaires sur l'erreur
