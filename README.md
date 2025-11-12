@@ -66,13 +66,15 @@ PUT    /api/tickets/{id}                 - Met à jour un ticket
 DELETE /api/tickets/{id}                 - Supprime un ticket
 
 
-GET    /api/tickets/status/{status}      - Tickets par statut
+GET    /api/tickets/findByStatus?status={status}      - Recherche par statut
 
-GET    /api/tickets/priority/{priority}  - Tickets par priorité
+GET    /api/tickets/findByPriority?priority={priority}  - Recherche par priorité
 
-GET    /api/tickets/user/{userId}        - Tickets d'un utilisateur
+GET    /api/tickets/findByUser?user={userId} - Recherche par utilisateur
 
-GET    /api/tickets/search?title={title} - Recherche par titre
+GET    /api/tickets/findByStatusUser?status={status}&user={userId} - Recherche par utilisateur et statut
+
+GET    /api/tickets/findByTitle?title={title} - Recherche par titre
 
 GET    /api/tickets/unassigned           - Tickets non assignés
 
@@ -81,17 +83,11 @@ GET    /api/tickets/critical             - Tickets critiques
 
 ### Actions sur les tickets
 
-PUT    /api/tickets/{id}/status          - Modifie le statut d'un ticket
-
-PUT    /api/tickets/{id}/priority        - Modifie la priorité d'un ticket
-
 PUT    /api/tickets/{id}/assign          - Assigne un ticket à un utilisateur
 
 PUT    /api/tickets/{id}/unassign        - Désassigne un ticket
 
 PUT    /api/tickets/{id}/close           - Ferme/termine un ticket
-
-PUT    /api/tickets/{id}/description     - Met à jour la description
 
 
 ### Gestion des commentaires
@@ -100,7 +96,19 @@ GET    /api/tickets/{id}/comments        - Liste les commentaires d'un ticket
 
 POST   /api/tickets/{id}/comments        - Ajoute un commentaire à un ticket
 
-DELETE /api/tickets/{id}/comments        - Supprime tous les commentaires
+
+### Gestion des images
+
+GET    /api/tickets/{id}/image          - Voir les images d'un ticket
+
+POST   /api/tickets/{id}/image          - Ajouter une image à un ticket
+
+
+### Gestion des vidéos
+
+GET    /api/tickets/{id}/videos        - Voir les vidéos d'un ticket
+
+POST   /api/tickets/{id}/videos        - Ajouter une vidéo à un ticket
 
 
 ### Gestion des utilisateurs
