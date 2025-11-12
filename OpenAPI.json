@@ -15,9 +15,6 @@ info:
     
     Auteurs: Il'aina Ratefinanahary et Samuel Brassard, UQAC Automne 2025
   version: 4.0.0
-  contact:
-    name: SBIR
-    email: iratefinan@etu.uqac.ca
   license:
     name: Usage Éducatif Uniquement
     url: https://github.com/TechSamQC/Lab2-GEI311-SBIR/tree/main
@@ -540,6 +537,138 @@ paths:
                 $ref: '#/components/schemas/Ticket'
         '404':
           description: Ticket non trouvé
+
+  /api/tickets/{ticketId}/ajoutImage:
+    post:
+      tags:
+        - tickets
+      summary: Ajoute une image à la description du ticket
+      description: Ajoute un chemin d'image à la description d'un ticket spécifique
+      operationId: addImageToTicket
+      parameters:
+        - name: ticketId
+          in: path
+          description: ID du ticket
+          required: true
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                imagePath:
+                  type: string
+                  description: Chemin ou URL de l'image à ajouter
+              required:
+                - imagePath
+      responses:
+        '200':
+          description: Image ajoutée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '404':
+          description: Ticket non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Chemin d'image invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        /api/tickets/{ticketId}/voirImage:
+          get:
+            tags:
+              - tickets
+            summary: Récupère les images d'un ticket
+            description: Retourne la liste de tous les chemins d'images associés à la description du ticket
+            operationId: getTicketImages
+            parameters:
+              - name: ticketId
+                in: path
+                description: ID du ticket
+                required: true
+                schema:
+                  type: integer
+                  format: int32
+            responses:
+              '200':
+                description: Liste des images récupérée avec succès
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        ticketId:
+                          type: integer
+                          format: int32
+                        imagePaths:
+                          type: array
+                          items:
+                            type: string
+                          description: Liste des chemins d'images
+              '404':
+                description: Ticket non trouvé
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/Error'
+      
+        /api/tickets/{ticketId}/ajoutVideo:
+          post:
+            tags:
+              - tickets
+            summary: Ajoute une vidéo à la description du ticket
+            description: Ajoute un chemin de vidéo à la description d'un ticket spécifique
+            operationId: addVideoToTicket
+            parameters:
+              - name: ticketId
+                in: path
+                description: ID du ticket
+                required: true
+                schema:
+                  type: integer
+                  format: int32
+            requestBody:
+              required: true
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      videoPath:
+                        type: string
+                        description: Chemin ou URL de la vidéo à ajouter
+                    required:
+                      - videoPath
+            responses:
+              '200':
+                description: Vidéo ajoutée avec succès
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/Ticket'
+              '404':
+                description: Ticket non trouvé
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/Error'
+              '400':
+                description: Chemin de vidéo invalide
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/Error'
 
   /api/tickets/{ticketId}/comments:
     get:
