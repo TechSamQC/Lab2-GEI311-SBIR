@@ -1,0 +1,246 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Ticket Management API",
+    "description": "API de gestion des tickets, utilisateurs, commentaires et médias."
+  },
+
+  "paths": {
+    "/tickets": {
+      "get": {
+        "summary": "Liste tous les tickets",
+        "operationId": "getTickets"
+      },
+      "post": {
+        "summary": "Crée un nouveau ticket",
+        "operationId": "createTicket",
+        "parameters": [
+          { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/Ticket" } }
+        ]
+      }
+    },
+
+    "/tickets/{id}": {
+      "get": {
+        "summary": "Récupère un ticket spécifique",
+        "operationId": "getTicketById",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "integer" }]
+      },
+      "put": {
+        "summary": "Met à jour un ticket",
+        "operationId": "updateTicket",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "type": "integer" },
+          { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/Ticket" } }
+        ]
+      },
+      "delete": {
+        "summary": "Supprime un ticket",
+        "operationId": "deleteTicket",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "integer" }]
+      }
+    },
+
+    "/tickets/findByStatus": {
+      "get": {
+        "summary": "Recherche par statut",
+        "operationId": "getTicketByStatus",
+        "parameters": [{ "name": "status", "in": "query", "type": "string", "required": true }]
+      }
+    },
+    "/tickets/findByPriority": {
+      "get": {
+        "summary": "Recherche par priorité",
+        "operationId": "getTicketByPriority",
+        "parameters": [{ "name": "priority", "in": "query", "type": "string", "required": true }]
+      }
+    },
+    "/tickets/findByUser": {
+      "get": {
+        "summary": "Recherche par utilisateur",
+        "operationId": "getTicketByUser",
+        "parameters": [{ "name": "user", "in": "query", "type": "integer", "required": true }]
+      }
+    },
+    "/tickets/findByStatusUser": {
+      "get": {
+        "summary": "Recherche par statut et utilisateur",
+        "operationId": "getTicketByStatusUser",
+        "parameters": [
+          { "name": "status", "in": "query", "type": "string", "required": true },
+          { "name": "user", "in": "query", "type": "integer", "required": true }
+        ]
+      }
+    },
+    "/tickets/findByTitle": {
+      "get": {
+        "summary": "Recherche par titre",
+        "operationId": "getTicketByTitle",
+        "parameters": [{ "name": "title", "in": "query", "type": "string", "required": true }]
+      }
+    },
+    "/tickets/unassigned": {
+      "get": {
+        "operationId": "getTicketUnassigned",
+        "summary": "Tickets non assignés"
+      }
+    },
+    "/tickets/critical": {
+      "get": {
+        "operationId": "getCriticalTickets",
+        "summary": "Tickets critiques"
+      }
+    },
+
+    "/tickets/{id}/assign": {
+      "put": {
+        "summary": "Assigne un ticket à un utilisateur",
+        "operationId": "assignTicket",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "type": "integer" },
+          { "name": "userId", "in": "query", "type": "integer", "required": true }
+        ]
+      }
+    },
+    "/tickets/{id}/unassign": {
+      "put": {
+        "summary": "Désassigne un ticket",
+        "operationId": "desassignTicket",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "integer" }]
+      }
+    },
+    "/tickets/{id}/close": {
+      "put": {
+        "summary": "Ferme un ticket",
+        "operationId": "closeTicket",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "integer" }]
+      }
+    },
+
+    "/tickets/{id}/comments": {
+      "get": {
+        "summary": "Liste les commentaires d'un ticket",
+        "operationId": "getTicketComments",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "integer" }]
+      },
+      "post": {
+        "summary": "Ajoute un commentaire à un ticket",
+        "operationId": "addCommentTicket",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "type": "integer" },
+          { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/Comment" } }
+        ]
+      }
+    },
+
+    "/tickets/{id}/image": {
+      "get": {
+        "summary": "Voir les images d'un ticket",
+        "operationId": "getImagesTicket",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "integer" }]
+      },
+      "post": {
+        "summary": "Ajouter une image à un ticket",
+        "operationId": "addImageTicket",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "type": "integer" },
+          { "name": "file", "in": "formData", "required": true, "type": "file" }
+        ]
+      }
+    },
+
+    "/tickets/{id}/videos": {
+      "get": {
+        "summary": "Voir les vidéos d'un ticket",
+        "operationId": "getVideosTicket",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "integer" }]
+      },
+      "post": {
+        "summary": "Ajouter une vidéo à un ticket",
+        "operationId": "addVideoTicket",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "type": "integer" },
+          { "name": "file", "in": "formData", "required": true, "type": "file" }
+        ]
+      }
+    },
+
+    "/users": {
+      "get": {
+        "summary": "Liste tous les utilisateurs",
+        "operationId": "getAllUsers"
+      },
+      "post": {
+        "summary": "Crée un nouvel utilisateur",
+        "operationId": "createUser",
+        "parameters": [
+          { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/User" } }
+        ]
+      }
+    },
+
+    "/users/{id}": {
+      "get": {
+        "summary": "Récupère un utilisateur spécifique",
+        "operationId": "getUser",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "integer" }]
+      },
+      "put": {
+        "summary": "Met à jour un utilisateur",
+        "operationId": "updateUser",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "type": "integer" },
+          { "in": "body", "name": "body", "required": true, "schema": { "$ref": "#/definitions/User" } }
+        ]
+      },
+      "delete": {
+        "summary": "Supprime un utilisateur",
+        "operationId": "deleteUser",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "integer" }]
+      }
+    },
+
+    "/export/tickets/{id}/pdf": {
+      "get": {
+        "summary": "Exporte un ticket en PDF",
+        "operationId": "exportTicket",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "integer" }]
+      }
+    }
+  },
+
+  "definitions": {
+    "Ticket": {
+      "type": "object",
+      "properties": {
+        "ticketID": { "type": "integer" },
+        "title": { "type": "string" },
+        "description": { "type": "Description" },
+        "status": { "type": "string" },
+        "priority": { "type": "string" },
+        "creationDate": { "type": "string" },
+        "updateDate": { "type": "string" },
+        "assignedUserId": { "type": "integer" },
+        "comments": { "type": "List<String>" }
+      }
+    },
+    "User": {
+      "type": "object",
+      "properties": {
+        "userID": { "type": "integer" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string" }
+      }
+    },
+    "Description": {
+      "type": "object",
+      "properties": {
+        "textContent": { "type": "string" },
+        "imagePaths": { "type": "List<String>" },
+        "videoPaths": { "type": "List<String>" }
+      }
+    }
+  }
+}
