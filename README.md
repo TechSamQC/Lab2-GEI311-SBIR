@@ -13,6 +13,59 @@ Le système est organisé autour de **trois piliers principaux** :
 2. **Gestion des utilisateurs de base** : Création, suppression et permissions de modification de tickets
 3. **Export en PDF** : Exportation en PDF des tickets et de tous ses informations
 
+### Lancer le serveur Spring Boot
+
+```cmd
+cd server_springboot
+mvn spring-boot:run
+```
+
+Ou avec Maven Wrapper :
+
+```cmd
+cd server_springboot
+mvnw spring-boot:run
+```
+
+**Accès à la documentation :**
+- Swagger UI : http://localhost:8080/swagger-ui.html
+- API Docs : http://localhost:8080/v3/api-docs
+
+### Lancer le client Java
+
+**Installation du client :**
+
+```cmd
+cd client_java
+mvn clean install
+```
+
+**Utilisation du client dans votre projet :**
+
+Ajoutez la dépendance Maven dans votre `pom.xml` :
+
+```xml
+<dependency>
+  <groupId>org.openapitools</groupId>
+  <artifactId>openapi-java-client</artifactId>
+  <version>4.0.0</version>
+</dependency>
+```
+
+**Exemple d'utilisation :**
+
+```java
+import org.openapitools.client.ApiClient;
+import org.openapitools.client.Configuration;
+import org.openapitools.client.api.TicketsApi;
+
+ApiClient client = Configuration.getDefaultApiClient();
+client.setBasePath("http://localhost:8080/api/v1");
+
+TicketsApi ticketsApi = new TicketsApi(client);
+List<TicketDTO> tickets = ticketsApi.getAllTickets();
+```
+
 ## Ressources principales du projet existant
 
 ### Modèles de données
