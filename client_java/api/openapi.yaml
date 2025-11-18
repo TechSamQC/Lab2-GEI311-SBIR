@@ -1,0 +1,2204 @@
+openapi: 3.0.3
+info:
+  contact:
+    email: iratefinan@etu.uqac.ca
+    name: SBIR Team
+  description: |
+    API REST pour le système de gestion de tickets développé en Java pour le cours 6GEI311, Architecture Logicielle
+
+    Auteurs: Il'aina Ratefinanahary et Samuel Brassard, UQAC Automne 2025
+  license:
+    name: Usage Éducatif Uniquement
+    url: https://github.com/TechSamQC/Lab2-GEI311-SBIR
+  title: "Système de Gestion de Tickets (SBIR), API REST"
+  version: 4.0.0
+servers:
+- description: Serveur de développement local
+  url: http://localhost:8080/api/v1
+tags:
+- description: Gestion des utilisateurs
+  name: users
+- description: Gestion des tickets (CRUD et opérations)
+  name: tickets
+- description: Gestion des commentaires
+  name: comments
+- description: Gestion des statuts et transitions
+  name: status
+- description: Recherche et filtrage de tickets
+  name: search
+- description: "Gestion des médias (images, vidéos)"
+  name: media
+- description: Export de tickets
+  name: export
+paths:
+  /users:
+    get:
+      description: Retourne la liste complète des utilisateurs du système
+      operationId: getAllUsers
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/UserDTO'
+                type: array
+          description: Liste des utilisateurs récupérée avec succès
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Liste tous les utilisateurs
+      tags:
+      - users
+      x-accepts:
+      - application/json
+    post:
+      description: Crée un nouvel utilisateur dans le système
+      operationId: createUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+        description: Données de l'utilisateur à créer
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+          description: Utilisateur créé avec succès
+        "400":
+          content:
+            application/json:
+              example:
+                error: VALIDATION_ERROR
+                message: Le titre du ticket ne peut pas être vide
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Requête invalide (validation échouée)
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Crée un nouvel utilisateur
+      tags:
+      - users
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /users/{userId}:
+    delete:
+      description: Supprime un utilisateur du système
+      operationId: deleteUser
+      parameters:
+      - description: Identifiant unique de l'utilisateur
+        explode: false
+        in: path
+        name: userId
+        required: true
+        schema:
+          example: 1
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        "204":
+          description: Utilisateur supprimé avec succès
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "403":
+          content:
+            application/json:
+              example:
+                error: FORBIDDEN
+                message: Permissions insuffisantes pour cette opération
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Accès refusé (permissions insuffisantes)
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Supprime un utilisateur
+      tags:
+      - users
+      x-accepts:
+      - application/json
+    get:
+      description: Retourne les détails d'un utilisateur par son ID
+      operationId: getUserById
+      parameters:
+      - description: Identifiant unique de l'utilisateur
+        explode: false
+        in: path
+        name: userId
+        required: true
+        schema:
+          example: 1
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+          description: Utilisateur trouvé
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Récupère un utilisateur spécifique
+      tags:
+      - users
+      x-accepts:
+      - application/json
+    put:
+      description: Met à jour les informations d'un utilisateur existant
+      operationId: updateUser
+      parameters:
+      - description: Identifiant unique de l'utilisateur
+        explode: false
+        in: path
+        name: userId
+        required: true
+        schema:
+          example: 1
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+          description: Utilisateur mis à jour avec succès
+        "400":
+          content:
+            application/json:
+              example:
+                error: VALIDATION_ERROR
+                message: Le titre du ticket ne peut pas être vide
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Requête invalide (validation échouée)
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Met à jour un utilisateur
+      tags:
+      - users
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /tickets:
+    get:
+      description: Retourne la liste de tous les tickets du système avec filtrage
+        optionnel
+      operationId: getAllTickets
+      parameters:
+      - description: Filtrer par statut
+        explode: true
+        in: query
+        name: status
+        required: false
+        schema:
+          enum:
+          - OUVERT
+          - ASSIGNE
+          - TERMINE
+          - FERME
+          type: string
+        style: form
+      - description: Filtrer par utilisateur assigné (ID)
+        explode: true
+        in: query
+        name: assignedTo
+        required: false
+        schema:
+          format: int32
+          type: integer
+        style: form
+      - description: Filtrer par priorité
+        explode: true
+        in: query
+        name: priority
+        required: false
+        schema:
+          enum:
+          - BASSE
+          - MOYENNE
+          - HAUTE
+          - CRITIQUE
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/TicketDTO'
+                type: array
+          description: Liste des tickets récupérée avec succès
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Liste tous les tickets
+      tags:
+      - tickets
+      x-accepts:
+      - application/json
+    post:
+      description: Crée un nouveau ticket dans le système
+      operationId: createTicket
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTicketRequest'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketDTO'
+          description: Ticket créé avec succès
+        "400":
+          content:
+            application/json:
+              example:
+                error: VALIDATION_ERROR
+                message: Le titre du ticket ne peut pas être vide
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Requête invalide (validation échouée)
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Crée un nouveau ticket
+      tags:
+      - tickets
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /tickets/{ticketId}:
+    delete:
+      description: |
+        Supprime un ticket. Seuls les administrateurs peuvent supprimer des tickets.
+      operationId: deleteTicket
+      parameters:
+      - description: Identifiant unique du ticket
+        explode: false
+        in: path
+        name: ticketId
+        required: true
+        schema:
+          example: 1001
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        "204":
+          description: Ticket supprimé avec succès
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "403":
+          content:
+            application/json:
+              example:
+                error: FORBIDDEN
+                message: Permissions insuffisantes pour cette opération
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Accès refusé (permissions insuffisantes)
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Supprime un ticket
+      tags:
+      - tickets
+      x-accepts:
+      - application/json
+    get:
+      description: Retourne les informations complètes d'un ticket spécifique
+      operationId: getTicketById
+      parameters:
+      - description: Identifiant unique du ticket
+        explode: false
+        in: path
+        name: ticketId
+        required: true
+        schema:
+          example: 1001
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketDTO'
+          description: Ticket trouvé
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "403":
+          content:
+            application/json:
+              example:
+                error: FORBIDDEN
+                message: Permissions insuffisantes pour cette opération
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Accès refusé (permissions insuffisantes)
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Récupère un ticket spécifique
+      tags:
+      - tickets
+      x-accepts:
+      - application/json
+    put:
+      description: |
+        Modifie un ticket existant.
+        Les admins/développeurs peuvent modifier tous les tickets.
+        Les utilisateurs ne peuvent modifier que leurs propres tickets.
+      operationId: updateTicket
+      parameters:
+      - description: Identifiant unique du ticket
+        explode: false
+        in: path
+        name: ticketId
+        required: true
+        schema:
+          example: 1001
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTicketRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketDTO'
+          description: Ticket modifié avec succès
+        "400":
+          content:
+            application/json:
+              example:
+                error: VALIDATION_ERROR
+                message: Le titre du ticket ne peut pas être vide
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Requête invalide (validation échouée)
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "403":
+          content:
+            application/json:
+              example:
+                error: FORBIDDEN
+                message: Permissions insuffisantes pour cette opération
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Accès refusé (permissions insuffisantes)
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Met à jour un ticket
+      tags:
+      - tickets
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /tickets/{ticketId}/status:
+    get:
+      description: Retourne la liste des statuts vers lesquels une transition est
+        possible
+      operationId: getAvailableTransitions
+      parameters:
+      - description: Identifiant unique du ticket
+        explode: false
+        in: path
+        name: ticketId
+        required: true
+        schema:
+          example: 1001
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                example:
+                - ASSIGNE
+                - FERME
+                items:
+                  type: string
+                type: array
+          description: Liste des transitions disponibles
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Obtenir les transitions disponibles
+      tags:
+      - status
+      x-accepts:
+      - application/json
+    put:
+      description: |
+        Met à jour le statut d'un ticket spécifique avec validation des transitions.
+
+        Transitions autorisées :
+        - OUVERT → ASSIGNE, FERME
+        - ASSIGNE → TERMINE, FERME
+        - TERMINE/FERME → (états finaux, aucune transition)
+
+        Seuls les admins et développeurs peuvent changer les statuts.
+      operationId: updateTicketStatus
+      parameters:
+      - description: Identifiant unique du ticket
+        explode: false
+        in: path
+        name: ticketId
+        required: true
+        schema:
+          example: 1001
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusUpdateDTO'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketDTO'
+          description: Statut mis à jour avec succès
+        "400":
+          content:
+            application/json:
+              example:
+                error: INVALID_TRANSITION
+                message: "Transition invalide : Ouvert -> Termine. Transitions autorisé\
+                  es : ASSIGNE, FERME"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Transition de statut invalide
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "403":
+          content:
+            application/json:
+              example:
+                error: FORBIDDEN
+                message: Permissions insuffisantes pour cette opération
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Accès refusé (permissions insuffisantes)
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Modifie le statut d'un ticket
+      tags:
+      - status
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /tickets/{ticketId}/priority:
+    put:
+      description: Met à jour la priorité d'un ticket spécifique
+      operationId: updateTicketPriority
+      parameters:
+      - description: Identifiant unique du ticket
+        explode: false
+        in: path
+        name: ticketId
+        required: true
+        schema:
+          example: 1001
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/updateTicketPriority_request'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketDTO'
+          description: Priorité mise à jour avec succès
+        "400":
+          content:
+            application/json:
+              example:
+                error: VALIDATION_ERROR
+                message: Le titre du ticket ne peut pas être vide
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Requête invalide (validation échouée)
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "403":
+          content:
+            application/json:
+              example:
+                error: FORBIDDEN
+                message: Permissions insuffisantes pour cette opération
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Accès refusé (permissions insuffisantes)
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Modifie la priorité d'un ticket
+      tags:
+      - tickets
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /tickets/{ticketId}/assign:
+    put:
+      description: |
+        Assigne un ticket à un utilisateur spécifique.
+        Change automatiquement le statut du ticket à ASSIGNE.
+        Seuls les admins peuvent assigner des tickets.
+      operationId: assignTicket
+      parameters:
+      - description: Identifiant unique du ticket
+        explode: false
+        in: path
+        name: ticketId
+        required: true
+        schema:
+          example: 1001
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignmentDTO'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketDTO'
+          description: Ticket assigné avec succès
+        "400":
+          content:
+            application/json:
+              example:
+                error: VALIDATION_ERROR
+                message: Le titre du ticket ne peut pas être vide
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Requête invalide (validation échouée)
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "403":
+          content:
+            application/json:
+              example:
+                error: FORBIDDEN
+                message: Permissions insuffisantes pour cette opération
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Accès refusé (permissions insuffisantes)
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Assigne un ticket à un utilisateur
+      tags:
+      - tickets
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /tickets/{ticketId}/unassign:
+    put:
+      description: Retire l'assignation d'un ticket
+      operationId: unassignTicket
+      parameters:
+      - description: Identifiant unique du ticket
+        explode: false
+        in: path
+        name: ticketId
+        required: true
+        schema:
+          example: 1001
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/unassignTicket_request'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketDTO'
+          description: Ticket désassigné avec succès
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "403":
+          content:
+            application/json:
+              example:
+                error: FORBIDDEN
+                message: Permissions insuffisantes pour cette opération
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Accès refusé (permissions insuffisantes)
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Désassigne un ticket
+      tags:
+      - tickets
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /tickets/{ticketId}/close:
+    put:
+      description: Marque un ticket comme terminé
+      operationId: closeTicket
+      parameters:
+      - description: Identifiant unique du ticket
+        explode: false
+        in: path
+        name: ticketId
+        required: true
+        schema:
+          example: 1001
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/closeTicket_request'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketDTO'
+          description: Ticket fermé avec succès
+        "403":
+          content:
+            application/json:
+              example:
+                error: FORBIDDEN
+                message: Permissions insuffisantes pour cette opération
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Accès refusé (permissions insuffisantes)
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Ferme/termine un ticket
+      tags:
+      - tickets
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /tickets/{ticketId}/description:
+    put:
+      description: Modifie la description d'un ticket existant
+      operationId: updateTicketDescription
+      parameters:
+      - description: Identifiant unique du ticket
+        explode: false
+        in: path
+        name: ticketId
+        required: true
+        schema:
+          example: 1001
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Description'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketDTO'
+          description: Description mise à jour avec succès
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "400":
+          content:
+            application/json:
+              example:
+                error: VALIDATION_ERROR
+                message: Le titre du ticket ne peut pas être vide
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Requête invalide (validation échouée)
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Met à jour la description d'un ticket
+      tags:
+      - tickets
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /tickets/{ticketId}/ajoutImage:
+    post:
+      description: Ajoute un chemin d'image à la description d'un ticket spécifique
+      operationId: addImageToTicket
+      parameters:
+      - description: Identifiant unique du ticket
+        explode: false
+        in: path
+        name: ticketId
+        required: true
+        schema:
+          example: 1001
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddImageRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketDTO'
+          description: Image ajoutée avec succès
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "400":
+          content:
+            application/json:
+              example:
+                error: VALIDATION_ERROR
+                message: Le titre du ticket ne peut pas être vide
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Requête invalide (validation échouée)
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Ajoute une image à la description du ticket
+      tags:
+      - media
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /tickets/{ticketId}/voirImage:
+    get:
+      description: Retourne la liste de tous les chemins d'images associés à la description
+        du ticket
+      operationId: getTicketImages
+      parameters:
+      - description: Identifiant unique du ticket
+        explode: false
+        in: path
+        name: ticketId
+        required: true
+        schema:
+          example: 1001
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getTicketImages_200_response'
+          description: Liste des images récupérée avec succès
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Récupère les images d'un ticket
+      tags:
+      - media
+      x-accepts:
+      - application/json
+  /tickets/{ticketId}/ajoutVideo:
+    post:
+      description: Ajoute un chemin de vidéo à la description d'un ticket spécifique
+      operationId: addVideoToTicket
+      parameters:
+      - description: Identifiant unique du ticket
+        explode: false
+        in: path
+        name: ticketId
+        required: true
+        schema:
+          example: 1001
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddVideoRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketDTO'
+          description: Vidéo ajoutée avec succès
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "400":
+          content:
+            application/json:
+              example:
+                error: VALIDATION_ERROR
+                message: Le titre du ticket ne peut pas être vide
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Requête invalide (validation échouée)
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Ajoute une vidéo à la description du ticket
+      tags:
+      - media
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /tickets/{ticketId}/comments:
+    delete:
+      description: Efface tous les commentaires associés à un ticket
+      operationId: clearComments
+      parameters:
+      - description: Identifiant unique du ticket
+        explode: false
+        in: path
+        name: ticketId
+        required: true
+        schema:
+          example: 1001
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        "204":
+          description: Commentaires supprimés avec succès
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "403":
+          content:
+            application/json:
+              example:
+                error: FORBIDDEN
+                message: Permissions insuffisantes pour cette opération
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Accès refusé (permissions insuffisantes)
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Supprime tous les commentaires d'un ticket
+      tags:
+      - comments
+      x-accepts:
+      - application/json
+    get:
+      description: Retourne tous les commentaires associés à un ticket
+      operationId: getTicketComments
+      parameters:
+      - description: Identifiant unique du ticket
+        explode: false
+        in: path
+        name: ticketId
+        required: true
+        schema:
+          example: 1001
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                example:
+                - Investigation en cours - logs analysés
+                - Bug reproduit en environnement de test
+                - Correctif appliqué - en attente de validation
+                items:
+                  description: Texte du commentaire
+                  type: string
+                type: array
+          description: Liste des commentaires récupérée
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Liste les commentaires d'un ticket
+      tags:
+      - comments
+      x-accepts:
+      - application/json
+    post:
+      description: |
+        Ajoute un nouveau commentaire à un ticket.
+        Admins et développeurs peuvent commenter tous les tickets.
+      operationId: addComment
+      parameters:
+      - description: Identifiant unique du ticket
+        explode: false
+        in: path
+        name: ticketId
+        required: true
+        schema:
+          example: 1001
+          format: int32
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentRequest'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                description: Le commentaire ajouté
+                example: Investigation en cours - logs analysés
+                type: string
+          description: Commentaire ajouté avec succès
+        "400":
+          content:
+            application/json:
+              example:
+                error: VALIDATION_ERROR
+                message: Le titre du ticket ne peut pas être vide
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Requête invalide (validation échouée)
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "403":
+          content:
+            application/json:
+              example:
+                error: FORBIDDEN
+                message: Permissions insuffisantes pour cette opération
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Accès refusé (permissions insuffisantes)
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Ajoute un commentaire à un ticket
+      tags:
+      - comments
+      x-content-type: application/json
+      x-accepts:
+      - application/json
+  /tickets/status/{status}:
+    get:
+      description: Retourne tous les tickets ayant un statut spécifique
+      operationId: getTicketsByStatus
+      parameters:
+      - description: Statut des tickets à récupérer
+        explode: false
+        in: path
+        name: status
+        required: true
+        schema:
+          enum:
+          - OUVERT
+          - ASSIGNE
+          - TERMINE
+          - FERME
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/TicketDTO'
+                type: array
+          description: Liste des tickets filtrés
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Récupère les tickets par statut
+      tags:
+      - search
+      x-accepts:
+      - application/json
+  /tickets/priority/{priority}:
+    get:
+      description: Retourne tous les tickets ayant une priorité spécifique
+      operationId: getTicketsByPriority
+      parameters:
+      - description: Priorité des tickets à récupérer
+        explode: false
+        in: path
+        name: priority
+        required: true
+        schema:
+          enum:
+          - BASSE
+          - MOYENNE
+          - HAUTE
+          - CRITIQUE
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/TicketDTO'
+                type: array
+          description: Liste des tickets filtrés
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Récupère les tickets par priorité
+      tags:
+      - search
+      x-accepts:
+      - application/json
+  /tickets/user/{userId}:
+    get:
+      description: Retourne tous les tickets assignés à un utilisateur spécifique
+      operationId: getTicketsByUser
+      parameters:
+      - description: Identifiant unique de l'utilisateur
+        explode: false
+        in: path
+        name: userId
+        required: true
+        schema:
+          example: 1
+          format: int32
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/TicketDTO'
+                type: array
+          description: Liste des tickets de l'utilisateur
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Récupère les tickets d'un utilisateur
+      tags:
+      - search
+      x-accepts:
+      - application/json
+  /tickets/search:
+    get:
+      description: Recherche des tickets dont le titre contient la chaîne spécifiée
+      operationId: searchTicketsByTitle
+      parameters:
+      - description: Titre ou partie du titre à rechercher
+        explode: true
+        in: query
+        name: title
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/TicketDTO'
+                type: array
+          description: Résultats de la recherche
+        "400":
+          content:
+            application/json:
+              example:
+                error: VALIDATION_ERROR
+                message: Le titre du ticket ne peut pas être vide
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Requête invalide (validation échouée)
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Recherche des tickets par titre
+      tags:
+      - search
+      x-accepts:
+      - application/json
+  /tickets/unassigned:
+    get:
+      description: Retourne tous les tickets ouverts qui ne sont pas encore assignés
+      operationId: getUnassignedTickets
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/TicketDTO'
+                type: array
+          description: Liste des tickets non assignés
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Récupère les tickets non assignés
+      tags:
+      - search
+      x-accepts:
+      - application/json
+  /tickets/critical:
+    get:
+      description: Retourne tous les tickets avec priorité CRITIQUE
+      operationId: getCriticalTickets
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/TicketDTO'
+                type: array
+          description: Liste des tickets critiques
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Récupère les tickets critiques
+      tags:
+      - search
+      x-accepts:
+      - application/json
+  /tickets/{ticketId}/export/pdf:
+    get:
+      description: |
+        Génère et exporte le contenu d'un ticket en format PDF.
+        Utilise le pattern Strategy (PDFExporter) côté serveur.
+      operationId: exportTicketToPDF
+      parameters:
+      - description: Identifiant unique du ticket
+        explode: false
+        in: path
+        name: ticketId
+        required: true
+        schema:
+          example: 1001
+          format: int32
+          type: integer
+        style: simple
+      - description: ID de l'utilisateur demandant l'export
+        explode: true
+        in: query
+        name: userId
+        required: false
+        schema:
+          format: int32
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/pdf:
+              schema:
+                format: binary
+                type: string
+            text/plain:
+              schema:
+                description: Contenu du PDF (format texte pour simulation)
+                example: |
+                  ==================================================
+                       EXPORT PDF - TICKET DESCRIPTION
+                  ==================================================
+
+                  SECTION TEXTE
+                  --------------------------------------------------
+                  L'application crash lors de la connexion...
+                  --------------------------------------------------
+
+                  ==================================================
+                       Fin du document PDF
+                  ==================================================
+                type: string
+          description: Export PDF généré avec succès
+        "404":
+          content:
+            application/json:
+              example:
+                error: NOT_FOUND
+                message: "Ticket #9999 introuvable"
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Ressource non trouvée
+        "403":
+          content:
+            application/json:
+              example:
+                error: FORBIDDEN
+                message: Permissions insuffisantes pour cette opération
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Accès refusé (permissions insuffisantes)
+        "500":
+          content:
+            application/json:
+              example:
+                error: INTERNAL_ERROR
+                message: Une erreur inattendue s'est produite
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Erreur interne du serveur
+      summary: Exporte un ticket en PDF
+      tags:
+      - export
+      x-accepts:
+      - application/json
+      - application/pdf
+      - text/plain
+components:
+  parameters:
+    TicketID:
+      description: Identifiant unique du ticket
+      explode: false
+      in: path
+      name: ticketId
+      required: true
+      schema:
+        example: 1001
+        format: int32
+        type: integer
+      style: simple
+    UserID:
+      description: Identifiant unique de l'utilisateur
+      explode: false
+      in: path
+      name: userId
+      required: true
+      schema:
+        example: 1
+        format: int32
+        type: integer
+      style: simple
+    Status:
+      description: Statut des tickets à récupérer
+      explode: false
+      in: path
+      name: status
+      required: true
+      schema:
+        enum:
+        - OUVERT
+        - ASSIGNE
+        - TERMINE
+        - FERME
+        type: string
+      style: simple
+    Priority:
+      description: Priorité des tickets à récupérer
+      explode: false
+      in: path
+      name: priority
+      required: true
+      schema:
+        enum:
+        - BASSE
+        - MOYENNE
+        - HAUTE
+        - CRITIQUE
+        type: string
+      style: simple
+  responses:
+    BadRequest:
+      content:
+        application/json:
+          example:
+            error: VALIDATION_ERROR
+            message: Le titre du ticket ne peut pas être vide
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+      description: Requête invalide (validation échouée)
+    Forbidden:
+      content:
+        application/json:
+          example:
+            error: FORBIDDEN
+            message: Permissions insuffisantes pour cette opération
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+      description: Accès refusé (permissions insuffisantes)
+    NotFound:
+      content:
+        application/json:
+          example:
+            error: NOT_FOUND
+            message: "Ticket #9999 introuvable"
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+      description: Ressource non trouvée
+    InternalServerError:
+      content:
+        application/json:
+          example:
+            error: INTERNAL_ERROR
+            message: Une erreur inattendue s'est produite
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+      description: Erreur interne du serveur
+  schemas:
+    UserDTO:
+      description: Représentation d'un utilisateur du système
+      example:
+        role: DEVELOPER
+        name: Utilisateur1
+        isAdmin: false
+        userID: 1
+        email: utilisateur1@uqac.ca
+      properties:
+        userID:
+          description: Identifiant unique de l'utilisateur
+          example: 1
+          format: int32
+          type: integer
+        name:
+          description: Nom complet de l'utilisateur
+          example: Utilisateur1
+          maxLength: 100
+          minLength: 1
+          type: string
+        email:
+          description: Adresse email de l'utilisateur
+          example: utilisateur1@uqac.ca
+          format: email
+          type: string
+        role:
+          description: Rôle de l'utilisateur dans le système
+          enum:
+          - ADMIN
+          - DEVELOPER
+          - USER
+          example: DEVELOPER
+          type: string
+        isAdmin:
+          description: Indique si l'utilisateur a les privilèges admin
+          example: false
+          type: boolean
+      required:
+      - email
+      - isAdmin
+      - name
+      - role
+      - userID
+      type: object
+    TicketDTO:
+      description: Représentation complète d'un ticket
+      example:
+        createdByName: Utilisateur1
+        updateDate: 2025-11-16T14:45:00Z
+        comments:
+        - comments
+        - comments
+        assignedToName: Utilisateur2
+        description:
+          imagePaths:
+          - media/images/screenshot1.png
+          - media/images/error_log.png
+          videoPaths:
+          - media/videos/bug_reproduction.mp4
+          textContent: L'application crash lors de la connexion après 3 tentatives
+            échouées.
+        title: Bug critique - Crash à la connexion
+        priority: HAUTE
+        creationDate: 2025-11-16T10:30:00Z
+        ticketID: 1001
+        assignedUserId: 2
+        status: OUVERT
+      properties:
+        ticketID:
+          description: Identifiant unique du ticket
+          example: 1001
+          format: int32
+          type: integer
+        title:
+          description: Titre du ticket
+          example: Bug critique - Crash à la connexion
+          maxLength: 200
+          minLength: 1
+          type: string
+        status:
+          description: Statut actuel du ticket
+          enum:
+          - OUVERT
+          - ASSIGNE
+          - TERMINE
+          - FERME
+          example: OUVERT
+          type: string
+        priority:
+          description: Niveau de priorité du ticket
+          enum:
+          - BASSE
+          - MOYENNE
+          - HAUTE
+          - CRITIQUE
+          example: HAUTE
+          type: string
+        createdByName:
+          description: Nom de l'utilisateur qui a créé le ticket
+          example: Utilisateur1
+          type: string
+        assignedToName:
+          description: Nom de l'utilisateur assigné (null si non assigné)
+          example: Utilisateur2
+          nullable: true
+          type: string
+        assignedUserId:
+          description: ID de l'utilisateur assigné (0 si non assigné)
+          example: 2
+          format: int32
+          type: integer
+        description:
+          $ref: '#/components/schemas/Description'
+        creationDate:
+          description: Date et heure de création du ticket
+          example: 2025-11-16T10:30:00Z
+          format: date-time
+          type: string
+        updateDate:
+          description: Date et heure de dernière modification
+          example: 2025-11-16T14:45:00Z
+          format: date-time
+          type: string
+        comments:
+          description: Liste des commentaires du ticket
+          items:
+            type: string
+          type: array
+      required:
+      - creationDate
+      - priority
+      - status
+      - ticketID
+      - title
+      type: object
+    Description:
+      description: |
+        Description multimédia d'un ticket utilisant le pattern Composite.
+        Supporte le texte, les images et les vidéos.
+      example:
+        imagePaths:
+        - media/images/screenshot1.png
+        - media/images/error_log.png
+        videoPaths:
+        - media/videos/bug_reproduction.mp4
+        textContent: L'application crash lors de la connexion après 3 tentatives échouées.
+      properties:
+        textContent:
+          description: Contenu textuel de la description
+          example: L'application crash lors de la connexion après 3 tentatives échouées.
+          type: string
+        imagePaths:
+          description: Chemins vers les images attachées
+          example:
+          - media/images/screenshot1.png
+          - media/images/error_log.png
+          items:
+            type: string
+          type: array
+        videoPaths:
+          description: Chemins vers les vidéos attachées
+          example:
+          - media/videos/bug_reproduction.mp4
+          items:
+            type: string
+          type: array
+      type: object
+    ContentItemDTO:
+      description: |
+        Représentation d'un élément de contenu (texte, image, vidéo).
+        Implémente le pattern Composite côté API.
+      properties:
+        type:
+          description: Type de contenu
+          enum:
+          - TEXT
+          - IMAGE
+          - VIDEO
+          example: TEXT
+          type: string
+        data:
+          description: |
+            Données du contenu :
+            - Pour TEXT : le texte complet
+            - Pour IMAGE : chemin du fichier image
+            - Pour VIDEO : chemin du fichier vidéo
+          example: L'application crash lors de la connexion après 3 tentatives échouées.
+          type: string
+        metadata:
+          description: |
+            Métadonnées optionnelles :
+            - Pour TEXT : null ou vide
+            - Pour IMAGE : caption/légende
+            - Pour VIDEO : durée en secondes (format string)
+          example: Message d'erreur affiché lors du crash
+          nullable: true
+          type: string
+      required:
+      - data
+      - type
+      type: object
+    CreateTicketRequest:
+      description: Requête de création d'un nouveau ticket
+      example:
+        description:
+          imagePaths:
+          - media/images/screenshot1.png
+          - media/images/error_log.png
+          videoPaths:
+          - media/videos/bug_reproduction.mp4
+          textContent: L'application crash lors de la connexion après 3 tentatives
+            échouées.
+        title: Bug critique - Crash à la connexion
+        priority: HAUTE
+      properties:
+        title:
+          description: Titre du ticket
+          example: Bug critique - Crash à la connexion
+          maxLength: 200
+          minLength: 1
+          type: string
+        priority:
+          description: Niveau de priorité
+          enum:
+          - BASSE
+          - MOYENNE
+          - HAUTE
+          - CRITIQUE
+          example: HAUTE
+          type: string
+        description:
+          $ref: '#/components/schemas/Description'
+      required:
+      - priority
+      - title
+      type: object
+    UpdateTicketRequest:
+      description: Requête de modification d'un ticket existant
+      example:
+        title: "Bug critique - Crash à la connexion [RÉSOLU]"
+        priority: MOYENNE
+      properties:
+        title:
+          description: Nouveau titre (optionnel)
+          example: "Bug critique - Crash à la connexion [RÉSOLU]"
+          maxLength: 200
+          minLength: 1
+          type: string
+        priority:
+          description: Nouvelle priorité (optionnel)
+          enum:
+          - BASSE
+          - MOYENNE
+          - HAUTE
+          - CRITIQUE
+          example: MOYENNE
+          type: string
+      type: object
+    StatusUpdateDTO:
+      description: Requête de changement de statut d'un ticket
+      example:
+        requestedBy: 1
+        status: ASSIGNE
+      properties:
+        status:
+          description: Nouveau statut souhaité (validation des transitions côté serveur)
+          enum:
+          - OUVERT
+          - ASSIGNE
+          - TERMINE
+          - FERME
+          example: ASSIGNE
+          type: string
+        requestedBy:
+          description: ID de l'utilisateur effectuant la modification
+          example: 1
+          format: int32
+          type: integer
+      required:
+      - status
+      type: object
+    AssignmentDTO:
+      description: Requête d'assignation d'un ticket à un utilisateur
+      example:
+        assignedBy: 1
+        userId: 2
+      properties:
+        userId:
+          description: ID de l'utilisateur à qui assigner le ticket
+          example: 2
+          format: int32
+          type: integer
+        assignedBy:
+          description: ID de l'utilisateur effectuant l'assignation
+          example: 1
+          format: int32
+          type: integer
+      required:
+      - userId
+      type: object
+    CommentRequest:
+      description: Requête d'ajout de commentaire
+      example:
+        comment: Investigation en cours - logs analysés
+        authorId: 1
+      properties:
+        comment:
+          description: Texte du commentaire
+          example: Investigation en cours - logs analysés
+          maxLength: 1000
+          minLength: 1
+          type: string
+        authorId:
+          description: ID de l'auteur du commentaire
+          example: 1
+          format: int32
+          type: integer
+      required:
+      - comment
+      type: object
+    AddImageRequest:
+      description: Requête d'ajout d'image à un ticket
+      example:
+        imagePath: media/images/screenshot1.png
+      properties:
+        imagePath:
+          description: Chemin ou URL de l'image à ajouter
+          example: media/images/screenshot1.png
+          type: string
+      required:
+      - imagePath
+      type: object
+    AddVideoRequest:
+      description: Requête d'ajout de vidéo à un ticket
+      example:
+        videoPath: media/videos/bug_reproduction.mp4
+      properties:
+        videoPath:
+          description: Chemin ou URL de la vidéo à ajouter
+          example: media/videos/bug_reproduction.mp4
+          type: string
+      required:
+      - videoPath
+      type: object
+    UserCreate:
+      description: Requête de création d'un nouvel utilisateur
+      example:
+        role: DEVELOPER
+        name: William Derreck
+        email: william.derreck@uqac.ca
+      properties:
+        name:
+          description: Nom complet
+          example: William Derreck
+          type: string
+        email:
+          description: Adresse email
+          example: william.derreck@uqac.ca
+          format: email
+          type: string
+        role:
+          description: Rôle
+          enum:
+          - ADMIN
+          - DEVELOPER
+          - USER
+          example: DEVELOPER
+          type: string
+      required:
+      - email
+      - name
+      - role
+      type: object
+    UserUpdate:
+      description: Requête de modification d'un utilisateur
+      example:
+        role: ADMIN
+        name: William Derreck
+        email: william.derreck@uqac.ca
+      properties:
+        name:
+          example: William Derreck
+          type: string
+        email:
+          example: william.derreck@uqac.ca
+          format: email
+          type: string
+        role:
+          enum:
+          - ADMIN
+          - DEVELOPER
+          - USER
+          type: string
+      type: object
+    ErrorResponse:
+      description: Réponse d'erreur standardisée
+      example:
+        code: 400
+        details: details
+        error: INVALID_TRANSITION
+        message: "Transition invalide : Ouvert -> Termine. Transitions autorisées\
+          \ : ASSIGNE, FERME"
+      properties:
+        error:
+          description: Code d'erreur
+          example: INVALID_TRANSITION
+          type: string
+        code:
+          description: Code d'erreur numérique
+          example: 400
+          format: int32
+          type: integer
+        message:
+          description: Message d'erreur détaillé
+          example: "Transition invalide : Ouvert -> Termine. Transitions autorisé\
+            es : ASSIGNE, FERME"
+          type: string
+        details:
+          description: Détails supplémentaires sur l'erreur
+          type: string
+      required:
+      - error
+      - message
+      type: object
+    updateTicketPriority_request:
+      properties:
+        priority:
+          enum:
+          - BASSE
+          - MOYENNE
+          - HAUTE
+          - CRITIQUE
+          type: string
+        requestedBy:
+          format: int32
+          type: integer
+      required:
+      - priority
+      type: object
+    unassignTicket_request:
+      properties:
+        requestedBy:
+          format: int32
+          type: integer
+      type: object
+    closeTicket_request:
+      properties:
+        userId:
+          description: ID de l'utilisateur fermant le ticket
+          format: int32
+          type: integer
+      type: object
+    getTicketImages_200_response:
+      example:
+        imagePaths:
+        - imagePaths
+        - imagePaths
+        ticketId: 0
+      properties:
+        ticketId:
+          format: int32
+          type: integer
+        imagePaths:
+          description: Liste des chemins d'images
+          items:
+            type: string
+          type: array
+      type: object
+
