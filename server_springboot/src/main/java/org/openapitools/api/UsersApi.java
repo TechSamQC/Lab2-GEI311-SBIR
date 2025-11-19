@@ -82,12 +82,12 @@ public interface UsersApi {
                     break;
                 }
                 if (mediaType.isCompatibleWith(MediaType.valueOf("application/json"))) {
-                    String exampleString = "{ \"code\" : 400, \"details\" : \"details\", \"error\" : \"INVALID_TRANSITION\", \"message\" : \"Transition invalide : Ouvert -> Termine. Transitions autorisées : ASSIGNE, FERME\" }";
+                    String exampleString = "{ \"code\" : 400, \"details\" : \"details\", \"error\" : \"INVALID_TRANSITION\", \"message\" : \"Transition invalide : Ouvert -> Validation. Transitions autorisées : ASSIGNE, FERME\" }";
                     ApiUtil.setExampleResponse(request, "application/json", exampleString);
                     break;
                 }
                 if (mediaType.isCompatibleWith(MediaType.valueOf("application/json"))) {
-                    String exampleString = "{ \"code\" : 400, \"details\" : \"details\", \"error\" : \"INVALID_TRANSITION\", \"message\" : \"Transition invalide : Ouvert -> Termine. Transitions autorisées : ASSIGNE, FERME\" }";
+                    String exampleString = "{ \"code\" : 400, \"details\" : \"details\", \"error\" : \"INVALID_TRANSITION\", \"message\" : \"Transition invalide : Ouvert -> Validation. Transitions autorisées : ASSIGNE, FERME\" }";
                     ApiUtil.setExampleResponse(request, "application/json", exampleString);
                     break;
                 }
@@ -138,12 +138,12 @@ public interface UsersApi {
         getRequest().ifPresent(request -> {
             for (MediaType mediaType: MediaType.parseMediaTypes(request.getHeader("Accept"))) {
                 if (mediaType.isCompatibleWith(MediaType.valueOf("application/json"))) {
-                    String exampleString = "{ \"code\" : 400, \"details\" : \"details\", \"error\" : \"INVALID_TRANSITION\", \"message\" : \"Transition invalide : Ouvert -> Termine. Transitions autorisées : ASSIGNE, FERME\" }";
+                    String exampleString = "{ \"code\" : 400, \"details\" : \"details\", \"error\" : \"INVALID_TRANSITION\", \"message\" : \"Transition invalide : Ouvert -> Validation. Transitions autorisées : ASSIGNE, FERME\" }";
                     ApiUtil.setExampleResponse(request, "application/json", exampleString);
                     break;
                 }
                 if (mediaType.isCompatibleWith(MediaType.valueOf("application/json"))) {
-                    String exampleString = "{ \"code\" : 400, \"details\" : \"details\", \"error\" : \"INVALID_TRANSITION\", \"message\" : \"Transition invalide : Ouvert -> Termine. Transitions autorisées : ASSIGNE, FERME\" }";
+                    String exampleString = "{ \"code\" : 400, \"details\" : \"details\", \"error\" : \"INVALID_TRANSITION\", \"message\" : \"Transition invalide : Ouvert -> Validation. Transitions autorisées : ASSIGNE, FERME\" }";
                     ApiUtil.setExampleResponse(request, "application/json", exampleString);
                     break;
                 }

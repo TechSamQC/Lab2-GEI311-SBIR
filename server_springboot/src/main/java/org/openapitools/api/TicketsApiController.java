@@ -524,6 +524,18 @@ public class TicketsApiController implements TicketsApi {
     }
 
     @Override
+    public ResponseEntity<List<TicketDTO>> getTicketsByStatusUser(@PathVariable("status") String status, @PathVariable("userId") Integer userId) {
+        try {
+            List<Ticket> tickets = ticketService.getTicketsByStatusUser(status, userId);
+            List<User> users = userService.getAllUsers();
+            List<TicketDTO> ticketDTOs = DomainMapper.toTicketDTOList(tickets, users);
+            return new ResponseEntity<>(ticketDTOs, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
     public ResponseEntity<List<TicketDTO>> getTicketsByPriority(@PathVariable("priority") String priority) {
         try {
             List<Ticket> tickets = ticketService.getTicketsByPriority(priority);

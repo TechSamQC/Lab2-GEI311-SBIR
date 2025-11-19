@@ -25,7 +25,7 @@ public class StatusUpdateDTO {
     
     ASSIGNE("ASSIGNE"),
     
-    TERMINE("TERMINE"),
+    VALIDATION("VALIDATION"),
     
     FERME("FERME");
 

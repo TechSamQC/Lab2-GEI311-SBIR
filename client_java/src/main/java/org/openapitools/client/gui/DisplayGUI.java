@@ -136,7 +136,7 @@ public class DisplayGUI extends JFrame {
             }
         });
         
-        filterStatusBox = new JComboBox<>(new String[]{"TOUS", "OUVERT", "ASSIGNE", "TERMINE", "FERME"});
+        filterStatusBox = new JComboBox<>(new String[]{"TOUS", "OUVERT", "ASSIGNE", "VALIDATION", "FERME"});
         filterStatusBox.setSelectedIndex(0);
         affichageTickets = new JScrollPane(ticketList);
         ticketPanel = new JPanel(new BorderLayout());
@@ -151,7 +151,7 @@ public class DisplayGUI extends JFrame {
         otherInfoArea = new JTextArea();
         otherInfoArea.setEditable(false);
         commentArea = new JTextArea();
-        statutBox = new JComboBox<>(new String[]{"OUVERT", "ASSIGNE", "TERMINE", "FERME"});
+        statutBox = new JComboBox<>(new String[]{"OUVERT", "ASSIGNE", "VALIDATION", "FERME"});
         prioriteBox = new JComboBox<>(new String[]{"BASSE", "MOYENNE", "HAUTE", "CRITIQUE"});
         assignatedUserBox = new JComboBox<>(allUsers.toArray(new UserDTO[0]));
         assignatedUserBox.insertItemAt(null, 0);
@@ -297,8 +297,7 @@ public class DisplayGUI extends JFrame {
                 ticketList.setListData(new TicketDTO[0]);
                 return;
             }
-
-            if (statutFiltre.equals("TOUS")) {
+            else if (statutFiltre.equals("TOUS")) {
                 if (currentUser.getIsAdmin()) {
                     tickets = ticketsApi.getAllTickets(null, null, null);
                 } else if (isUserDeveloper(currentUser)) {
@@ -317,7 +316,7 @@ public class DisplayGUI extends JFrame {
             } else if ((statutFiltre.equals("OUVERT") && isUserDeveloper(currentUser)) || currentUser.getIsAdmin()) {
                 tickets = searchApi.getTicketsByStatus(statutFiltre);
             } else {
-                tickets = ticketsApi.getAllTickets(statutFiltre, currentUser.getUserID(), null);
+                tickets = searchApi.getTicketsByStatusUser(statutFiltre, currentUser.getUserID());
             }
 
             ticketList.setListData(tickets.toArray(new TicketDTO[0]));
@@ -451,7 +450,7 @@ public class DisplayGUI extends JFrame {
             }
 
             if (selectedTicket.getStatus() == TicketDTO.StatusEnum.FERME || 
-                selectedTicket.getStatus() == TicketDTO.StatusEnum.TERMINE) {
+                selectedTicket.getStatus() == TicketDTO.StatusEnum.VALIDATION) {
                 JOptionPane.showMessageDialog(this,
                     "Ce ticket est terminé et ne peut pas être modifié !",
                     "Erreur", JOptionPane.ERROR_MESSAGE);

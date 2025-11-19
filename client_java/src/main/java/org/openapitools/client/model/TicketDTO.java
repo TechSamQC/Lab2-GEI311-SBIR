@@ -74,7 +74,7 @@ public class TicketDTO {
     
     ASSIGNE("ASSIGNE"),
     
-    TERMINE("TERMINE"),
+    VALIDATION("VALIDATION"),
     
     FERME("FERME");
 

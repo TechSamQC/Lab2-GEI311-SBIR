@@ -86,7 +86,7 @@ public class ErrorResponse {
    * @return message
    */
   @NotNull 
-  @Schema(name = "message", example = "Transition invalide : Ouvert -> Termine. Transitions autorisées : ASSIGNE, FERME", description = "Message d'erreur détaillé", requiredMode = Schema.RequiredMode.REQUIRED)
+  @Schema(name = "message", example = "Transition invalide : Ouvert -> Validation. Transitions autorisées : ASSIGNE, FERME", description = "Message d'erreur détaillé", requiredMode = Schema.RequiredMode.REQUIRED)
   @JsonProperty("message")
   public String getMessage() {
     return message;

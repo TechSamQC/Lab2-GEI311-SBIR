@@ -278,7 +278,7 @@ paths:
           enum:
           - OUVERT
           - ASSIGNE
-          - TERMINE
+          - VALIDATION
           - FERME
           type: string
         style: form
@@ -612,8 +612,8 @@ paths:
 
         Transitions autorisées :
         - OUVERT → ASSIGNE, FERME
-        - ASSIGNE → TERMINE, FERME
-        - TERMINE/FERME → (états finaux, aucune transition)
+        - ASSIGNE → VALIDATION, FERME
+        - VALIDATION/FERME → (états finaux, aucune transition)
 
         Seuls les admins et développeurs peuvent changer les statuts.
       operationId: updateTicketStatus
@@ -646,8 +646,8 @@ paths:
             application/json:
               example:
                 error: INVALID_TRANSITION
-                message: "Transition invalide : Ouvert -> Termine. Transitions autorisé\
-                  es : ASSIGNE, FERME"
+                message: "Transition invalide : Ouvert -> Validation. Transitions autoris\
+                  ees : ASSIGNE, FERME"
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
           description: Transition de statut invalide

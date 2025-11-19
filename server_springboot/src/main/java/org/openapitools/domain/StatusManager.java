@@ -8,15 +8,15 @@ public class StatusManager {
     private Map<String, List<String>> statusTransitions;
 
     public StatusManager() {
-        this.validStatuses = Arrays.asList("OUVERT", "ASSIGNE", "TERMINE", "FERME");
+        this.validStatuses = Arrays.asList("OUVERT", "ASSIGNE", "VALIDATION", "FERME");
         this.statusTransitions = new HashMap<>();
         initializeTransitions();
     }
 
     public void initializeTransitions() {
         statusTransitions.put("OUVERT", Arrays.asList("ASSIGNE", "FERME"));
-        statusTransitions.put("ASSIGNE", Arrays.asList("TERMINE", "FERME"));
-        statusTransitions.put("TERMINE", new ArrayList<>());
+        statusTransitions.put("ASSIGNE", Arrays.asList("VALIDATION", "FERME"));
+        statusTransitions.put("VALIDATION", new ArrayList<>());
         statusTransitions.put("FERME", new ArrayList<>());
     }
 

@@ -4,6 +4,7 @@ import org.openapitools.domain.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -65,9 +66,17 @@ public class TicketService {
     public List<Ticket> getTicketsByUserId(int userId) {
         User user = userService.getUserById(userId);
         if (user == null) {
-            return List.of();
+            return Arrays.asList();
         }
         return ticketManager.getTicketsByUser(user);
+    }
+
+    public List<Ticket> getTicketsByStatusUser(String status, int userId) {
+        User user = userService.getUserById(userId);
+        if (user == null) {
+            return Arrays.asList();
+        }
+        return ticketManager.getTicketsByStatusUser(status, user);
     }
 
     public List<Ticket> searchTicketsByTitle(String title) {
@@ -117,7 +126,7 @@ public class TicketService {
     public List<String> getAvailableTransitions(int ticketId) {
         Ticket ticket = ticketManager.getTicket(ticketId);
         if (ticket == null) {
-            return List.of();
+            return Arrays.asList();
         }
         return ticketManager.getStatusManager().getValidTransitions(ticket.getStatus());
     }
@@ -196,7 +205,7 @@ public class TicketService {
     public List<String> getTicketImages(int ticketId) {
         Ticket ticket = ticketManager.getTicket(ticketId);
         if (ticket == null || ticket.getDescription() == null) {
-            return List.of();
+            return Arrays.asList();
         }
         return ticket.getDescription().getImagePaths();
     }
@@ -214,7 +223,7 @@ public class TicketService {
     public List<String> getComments(int ticketId) {
         Ticket ticket = ticketManager.getTicket(ticketId);
         if (ticket == null) {
-            return List.of();
+            return Arrays.asList();
         }
         return ticket.getComments();
     }

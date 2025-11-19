@@ -111,7 +111,7 @@ components:
           enum:
             - OUVERT
             - ASSIGNE
-            - TERMINE
+            - VALIDATION
             - FERME
           example: "OUVERT"
         priority:
@@ -282,7 +282,7 @@ components:
           enum:
             - OUVERT
             - ASSIGNE
-            - TERMINE
+            - VALIDATION
             - FERME
           example: "ASSIGNE"
         requestedBy:
@@ -656,7 +656,7 @@ paths:
             enum:
               - OUVERT
               - ASSIGNE
-              - TERMINE
+              - VALIDATION
               - FERME
         - name: assignedTo
           in: query
@@ -826,7 +826,7 @@ paths:
         Transitions autorisées :
         - OUVERT → ASSIGNE, FERME
         - ASSIGNE → TERMINE, FERME
-        - TERMINE/FERME → (états finaux, aucune transition)
+        - VALIDATION/FERME → (états finaux, aucune transition)
         
         Seuls les admins et développeurs peuvent changer les statuts.
       operationId: updateTicketStatus

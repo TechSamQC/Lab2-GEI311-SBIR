@@ -92,6 +92,24 @@ public class TicketManager {
         return userTickets;
     }
 
+    // Obtient les tickets par statut et utilisateur
+    public List<Ticket> getTicketsByStatusUser(String status, User user) {
+        if (user == null || status == null || status.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Filtrer les tickets par statut ET utilisateur
+        List<Ticket> filteredTickets = new ArrayList<>();
+        for (Ticket ticket : allTickets) {
+            if (ticket.getStatus() != null && ticket.getStatus().equalsIgnoreCase(status)) {
+                if (ticket.getAssignedUserId() == user.getUserID()) {
+                    filteredTickets.add(ticket);
+                }
+            }
+        }
+        return filteredTickets;
+    }
+
     public boolean updateTicketStatus(int ticketID, String newStatus, User requestedBy) {
         Ticket ticket = getTicket(ticketID);
         if (ticket == null) {
@@ -99,7 +117,7 @@ public class TicketManager {
             return false;
         }
 
-        if (newStatus.equals("TERMINE") || newStatus.equals("FERME")) {
+        if (newStatus != null && newStatus.equalsIgnoreCase("FERME")) {
             return closeTicket(ticketID, requestedBy);
         }
 
@@ -118,7 +136,7 @@ public class TicketManager {
             return false;
         }
 
-        if (ticket.getStatus().equals("TERMINE") || ticket.getStatus().equals("FERME")) {
+        if (ticket.getStatus().equals("VALIDATION") || ticket.getStatus().equals("FERME")) {
             System.out.println("Erreur: La priorité d'un ticket terminé ne peut pas être changée.");
             return false;
         }
@@ -133,8 +151,8 @@ public class TicketManager {
             return false;
         }
 
-        if (ticket.getStatus().equals("TERMINE") || ticket.getStatus().equals("FERME")) {
-            System.out.println("Impossible d'assigner un utilisateur, le ticket est terminé.");
+        if (ticket.getStatus().equals("VALIDATION") || ticket.getStatus().equals("FERME")) {
+            System.out.println("Impossible d'assigner un utilisateur, le ticket est en validation.");
             return false;
         }
 
@@ -149,7 +167,7 @@ public class TicketManager {
             return false;
         }
 
-        if (!ticket.getStatus().equals("TERMINE") && !ticket.getStatus().equals("FERME")) {
+        if (!ticket.getStatus().equals("VALIDATION") && !ticket.getStatus().equals("FERME")) {
             statusManager.updateStatus(ticket, "OUVERT", requestedBy);
             return assignationManager.unassignTicket(ticket, requestedBy);
         }
@@ -164,8 +182,8 @@ public class TicketManager {
             return false;
         }
 
-        if (ticket.getStatus().equals("TERMINE") || ticket.getStatus().equals("FERME")) {
-            System.out.println("Erreur: Impossible d'ajouter un commentaire à un ticket terminé.");
+        if (ticket.getStatus().equals("VALIDATION") || ticket.getStatus().equals("FERME")) {
+            System.out.println("Erreur: Impossible d'ajouter un commentaire à un ticket en validation.");
             return false;
         }
 
