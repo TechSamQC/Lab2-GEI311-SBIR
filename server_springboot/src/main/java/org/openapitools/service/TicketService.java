@@ -6,6 +6,15 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.*;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+
+import javax.swing.*;
+import java.io.*;
+
 @Service
 public class TicketService {
     
@@ -221,64 +230,122 @@ public class TicketService {
 
     // ===== Export Operations =====
 
-    public String exportTicketToPDF(int ticketId, int userId) {
+    public File exportTicketToPDF(int ticketId, int userId) {
         Ticket ticket = ticketManager.getTicket(ticketId);
         if (ticket == null) {
             return null;
         }
 
-        User user = userService.getUserById(userId);
+        User assignatedUser = userService.getUserById(userId);
+
+        List<String> comments = getComments(ticketId);
+
         
-        StringBuilder pdf = new StringBuilder();
-        pdf.append("==================================================\n");
-        pdf.append("       EXPORT PDF - TICKET DESCRIPTION\n");
-        pdf.append("==================================================\n\n");
-        pdf.append("Ticket #").append(ticket.getTicketID()).append(": ").append(ticket.getTitle()).append("\n");
-        pdf.append("Statut: ").append(ticket.getStatus()).append("\n");
-        pdf.append("Priorité: ").append(ticket.getPriority()).append("\n");
-        pdf.append("Créé le: ").append(ticket.getCreationDate()).append("\n");
-        pdf.append("Dernière mise à jour: ").append(ticket.getUpdateDate()).append("\n\n");
-        
-        if (user != null) {
-            pdf.append("Exporté par: ").append(user.getName()).append("\n\n");
-        }
-        
-        pdf.append("SECTION TEXTE\n");
-        pdf.append("--------------------------------------------------\n");
-        if (ticket.getDescription() != null) {
-            pdf.append(ticket.getDescription().getTextContent()).append("\n");
-        }
-        pdf.append("--------------------------------------------------\n\n");
-        
-        if (ticket.getDescription() != null && !ticket.getDescription().getImagePaths().isEmpty()) {
-            pdf.append("IMAGES:\n");
-            for (String imagePath : ticket.getDescription().getImagePaths()) {
-                pdf.append("  - ").append(imagePath).append("\n");
+        // Méthode principal, pour exporter un ticket en pdf :)
+        try {
+            // *****************INITIALISATION DU CONTENU DU PDF****************
+            PDDocument doc = new PDDocument(); //Création du document
+            PDPage page = new PDPage(); //Ajout nouvelle page
+            doc.addPage(page); //Création de la page
+            PDPageContentStream content = new PDPageContentStream(doc, page); //Ajout de contenu (ce dans quoi on pourra insérer des choses)
+            content.beginText(); //Début de la zone de texte
+
+            // *****************NUMERO DU TICKET ET TITRE*****************
+            content.setFont(PDType1Font.HELVETICA_BOLD, 12); //Modification de la police
+            content.newLineAtOffset(50, 700);
+            content.showText(ticket.toString());
+            
+            // *****************INFORMATIONS DU TICKET****************
+            content.setFont(PDType1Font.HELVETICA, 9); //Modification de la police
+            content.newLineAtOffset(0, -12); // descend de 12 points sous le titre
+            content.showText("Créé le : " + ticket.getCreationDate());
+            content.newLineAtOffset(0, -10); // descend de 10 points
+            content.showText("Dernière mise à jour : " + ticket.getUpdateDate());
+
+            // *****************DESCRIPTION DU TICKET****************
+            content.setFont(PDType1Font.HELVETICA, 12); //Modification de la police
+            content.newLineAtOffset(0, -30); // descendre sous le titre et les infos
+            // Découper le texte selon les sauts de ligne
+            String[] lines = ticket.getDescription().getContentSummary().split("[\\r?\\n,]+"); //Sépare la description par ligne selon les sauts de lignes
+                                                                                                                    // et sépare les liens (virgule) pour qu'ils rentrent tous dans le pdf
+            for (String line : lines) { // Pour l'ensemble des lignes
+                content.showText(line); // Ajouter la ligne sur le pdf
+                content.newLineAtOffset(0, -15); // descend de 15 points à chaque ligne
             }
-            pdf.append("\n");
-        }
-        
-        if (ticket.getDescription() != null && !ticket.getDescription().getVideoPaths().isEmpty()) {
-            pdf.append("VIDÉOS:\n");
-            for (String videoPath : ticket.getDescription().getVideoPaths()) {
-                pdf.append("  - ").append(videoPath).append("\n");
+
+            // *****************STATUT DU TICKET****************
+            content.newLineAtOffset(0, -20); // descendre sous la description (de 20 pts)
+            content.setFont(PDType1Font.HELVETICA_BOLD, 12); //Modification de la police
+            content.showText("Statut : "); // Ajoute le titre de la section
+            content.setFont(PDType1Font.HELVETICA, 12); //Modification de la police
+            content.showText(ticket.getStatus()); // Ajoute le statut du ticket
+
+            // *****************UTILISATEUR ASSIGNÉ DU TICKET****************
+            if (assignatedUser != null) { //SI il y en a un on l'affiche
+                content.newLineAtOffset(0, -15); // descend de 15 points
+                content.setFont(PDType1Font.HELVETICA_BOLD, 12); //Modification de la police
+                content.showText("Utilisateur assigné : "); // Ajoute le titre de la section
+                content.setFont(PDType1Font.HELVETICA, 12); //Modification de la police
+                content.showText(assignatedUser.toString()); // affichage de l'utilisateur assigné
             }
-            pdf.append("\n");
-        }
-        
-        if (!ticket.getComments().isEmpty()) {
-            pdf.append("COMMENTAIRES:\n");
-            for (String comment : ticket.getComments()) {
-                pdf.append("  ").append(comment).append("\n");
+
+            // *****************PRIORITÉ DU TICKET****************
+            content.newLineAtOffset(0, -15); // descend de 15 points
+            content.setFont(PDType1Font.HELVETICA_BOLD, 12); //Modification de la police
+            content.showText("Priorité : "); // Ajoute le titre de la section
+            content.setFont(PDType1Font.HELVETICA, 12); //Modification de la police
+            content.showText(ticket.getPriority()); // Ajoute la priorité du ticket
+
+            // *****************COMMENTAIRES DU TICKET****************
+            content.newLineAtOffset(0, -15); // descend de 15 points
+            content.setFont(PDType1Font.HELVETICA_BOLD, 12); //Modification de la police
+            content.showText("Commentaires : "); // Ajoute le titre de la section
+            content.setFont(PDType1Font.HELVETICA, 12); //Modification de la police
+            content.newLineAtOffset(0, -15); // descend de 15 points
+            for (String line : comments) { // Pour touts les commentaires
+                content.showText(line); // Ajouter le commentaire
+                content.newLineAtOffset(0, -15); // descendre de 15 points à chaque fois
             }
-            pdf.append("\n");
+            content.setFont(PDType1Font.HELVETICA_BOLD, 12); //Modification de la police
+            content.showText("IMAGES : "); // Ajoute le titre de la prochaine section
+
+            // *****************FIN DU CONTENU TEXTE****************
+            content.endText();
+
+            // *****************IMAGES DU TICKET****************
+            PDImageXObject pdImage;
+            int x = 50; // position x initiale de l'image
+            int y = 100; // position verticale initiale (en bas de la page)
+            int hauteurmaxImage = 300; // hauteur maximum de l'image
+            int largeurmaxImage = 500; // largeur maximum de l'imageS
+            if (!getTicketImages(ticketId).isEmpty()) { //SI il y a des images
+                for (String imagePath : getTicketImages(ticketId)) { //Pour tout les images récupérer le chemin d'accès
+                    //SI y est plus petit que 0, on change de page.
+                    if (y < 0) {
+                        content.close(); //Fermeture du contenu actuel
+                        page = new PDPage(); //Nouvel page
+                        doc.addPage(page); // Création de la page
+                        content = new PDPageContentStream(doc, page); // Nouveau contenu
+                        y = 700 - hauteurmaxImage; // réinitialisation de y
+                    }
+                    pdImage = PDImageXObject.createFromFile(imagePath, doc); // Création de l'image sous le format pour le pdf
+                    content.drawImage(pdImage, x, y, largeurmaxImage, hauteurmaxImage); // Dessiner l'image dans le pdf
+                    y -= hauteurmaxImage + 10; // descendre pour la prochaine image
+                }
+            }
+            content.close(); // Fermeture du contenu
+
+            File file = new File("ticket.pdf"); // Définition de la destination du fichier
+            doc.save(file); // Sauvegarde du fichier pdf
+            doc.close(); // Fermeture du document
+            JOptionPane.showMessageDialog(null, "Ticket exporté en PDF avec succès !"); // Message de succès
+            return file; // Retourne le fichier créé
+        } catch (Exception ex) {
+            // Affichage d'un message d'erreur si un erreur d'exécution survient
+            JOptionPane.showMessageDialog(null, "Erreur lors de l'export PDF : " + ex.getMessage());
+            ex.printStackTrace();
+            return null; // Retourne le fichier créé
         }
-        
-        pdf.append("==================================================\n");
-        pdf.append("       Fin du document PDF\n");
-        pdf.append("==================================================\n");
-        
-        return pdf.toString();
     }
 
     public TicketManager getTicketManager() {

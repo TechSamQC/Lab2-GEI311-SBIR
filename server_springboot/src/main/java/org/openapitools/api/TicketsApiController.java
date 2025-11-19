@@ -19,9 +19,11 @@ import org.springframework.web.context.request.NativeWebRequest;
 import javax.validation.constraints.*;
 import javax.validation.Valid;
 
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Generated;
+import java.io.*;
 
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2025-11-18T07:20:00.634681-05:00[America/Toronto]", comments = "Generator version: 7.10.0")
 @Controller
@@ -604,17 +606,22 @@ public class TicketsApiController implements TicketsApi {
             }
 
             Integer exportUserId = userId != null ? userId : 1;
-            String pdfContent = ticketService.exportTicketToPDF(ticketId, exportUserId);
 
-            if (pdfContent == null) {
+            // Générer le PDF en tant que fichier
+            File pdfFile = ticketService.exportTicketToPDF(ticketId, exportUserId);
+            if (pdfFile == null || !pdfFile.exists()) {
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
-            byte[] pdfBytes = pdfContent.getBytes();
+            // Lire le fichier en bytes
+            byte[] pdfBytes = Files.readAllBytes(pdfFile.toPath());
             ByteArrayResource resource = new ByteArrayResource(pdfBytes);
 
+            // Retourner le PDF dans la réponse
             return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
+                .contentLength(pdfBytes.length)
+                .header("Content-Disposition", "attachment; filename=\"" + pdfFile.getName() + "\"")
                 .body(resource);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
