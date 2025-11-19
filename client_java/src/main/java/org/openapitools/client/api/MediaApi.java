@@ -19,17 +19,11 @@ import org.openapitools.client.ApiException;
 import org.openapitools.client.ApiResponse;
 import org.openapitools.client.Configuration;
 import org.openapitools.client.Pair;
-import org.openapitools.client.ProgressRequestBody;
-import org.openapitools.client.ProgressResponseBody;
 
 import com.google.gson.reflect.TypeToken;
 
-import java.io.IOException;
-
-
 import org.openapitools.client.model.AddImageRequest;
 import org.openapitools.client.model.AddVideoRequest;
-import org.openapitools.client.model.ErrorResponse;
 import org.openapitools.client.model.GetTicketImages200Response;
 import org.openapitools.client.model.TicketDTO;
 

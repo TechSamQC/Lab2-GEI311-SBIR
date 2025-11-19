@@ -1,0 +1,2 @@
+INDEX VERSION 1.134+D:\UQAC\Automne 2025\Arch log\Lab2\Lab2-GEI311-SBIR\.metadata\.plugins\org.eclipse.jdt.core
+1865797976.index
