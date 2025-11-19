@@ -28,9 +28,9 @@ public class ProgressRequestBody extends RequestBody {
 
     private final RequestBody requestBody;
 
-    private final ApiCallback callback;
+    private final ApiCallback<?> callback;
 
-    public ProgressRequestBody(RequestBody requestBody, ApiCallback callback) {
+    public ProgressRequestBody(RequestBody requestBody, ApiCallback<?> callback) {
         this.requestBody = requestBody;
         this.callback = callback;
     }
