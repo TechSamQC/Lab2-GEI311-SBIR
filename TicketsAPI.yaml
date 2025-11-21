@@ -426,7 +426,7 @@ components:
         message:
           type: string
           description: Message d'erreur détaillé
-          example: "Transition invalide : Ouvert -> Termine. Transitions autorisées : ASSIGNE, FERME"
+          example: "Transition invalide : Ouvert -> Ferme sans passer par Validation. Transitions autorisées : ASSIGNE, VALIDATION, FERME"
         details:
           type: string
           description: Détails supplémentaires sur l'erreur
@@ -462,7 +462,7 @@ components:
       required: true
       schema:
         type: string
-        enum: [OUVERT, ASSIGNE, TERMINE, FERME]
+        enum: [OUVERT, ASSIGNE, VALIDATION, FERME]
 
     Priority:
       name: priority
@@ -824,9 +824,10 @@ paths:
         Met à jour le statut d'un ticket spécifique avec validation des transitions.
         
         Transitions autorisées :
-        - OUVERT → ASSIGNE, FERME
-        - ASSIGNE → TERMINE, FERME
-        - VALIDATION/FERME → (états finaux, aucune transition)
+        - OUVERT → ASSIGNE, VALIDATION, FERME
+        - ASSIGNE → VALIDATION, FERME
+        - VALIDATION → FERME (état final)
+        - FERME → (état final, aucune transition)
         
         Seuls les admins et développeurs peuvent changer les statuts.
       operationId: updateTicketStatus
@@ -853,7 +854,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
               example:
                 error: "INVALID_TRANSITION"
-                message: "Transition invalide : Ouvert -> Termine. Transitions autorisées : ASSIGNE, FERME"
+                message: "Transition invalide : Ouvert -> Ferme sans passer par Validation. Transitions autorisées : ASSIGNE, VALIDATION, FERME"
         '404':
           $ref: '#/components/responses/NotFound'
         '403':
